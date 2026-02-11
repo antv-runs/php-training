@@ -16,9 +16,5 @@ $product2 = new Product("Mouse", 50);
 
 $customer = new VIPCustomer("An", "an@gmail.com");
 
-$order = new Order($customer);
-$order->addProduct($product1);
-$order->addProduct($product2);
-
 $orderService = new OrderService();
-$orderService->checkout($order);
+$orderService->createOrder($customer, [$product1, $product2]);

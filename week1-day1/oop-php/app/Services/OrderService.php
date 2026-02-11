@@ -2,7 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\User;
+use App\Contracts\DiscountInterface;
+use App\Models\Customer;
 
 class OrderService
 {
@@ -15,7 +16,7 @@ class OrderService
         $this->invoiceService = new InvoiceService();
     }
 
-    public function createOrder(User $customer, array $products) 
+    public function createOrder(Customer $customer, array $products) 
     {
         $total = 0;
 
@@ -31,6 +32,6 @@ class OrderService
             $total,
             $discount,
             $final
-        )
+        );
     }
 }
