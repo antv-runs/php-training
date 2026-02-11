@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  oop-php:
+  php:
     image: php:8.2-cli
     container_name: php_app
     working_dir: /app
