@@ -1,52 +1,84 @@
 ############################
-# Composer
-############################
-vendor/
-composer.lock
-
-############################
-# Environment
-############################
-.env
-.env.*
-
-############################
-# Logs
-############################
-*.log
-
-############################
-# Cache / Storage
-############################
-storage/
-cache/
-tmp/
-
-############################
-# Node (nếu có frontend)
-############################
-node_modules/
-dist/
-build/
-
-############################
-# IDE
-############################
-.vscode/
-.idea/
-
-############################
 # OS
 ############################
 .DS_Store
 Thumbs.db
 
 ############################
-# PHPUnit
+# IDE / Editor
 ############################
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+############################
+# Logs
+############################
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+############################
+# NodeJS / Vue / Gulp
+############################
+node_modules/
+dist/
+build/
+.tmp/
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+coverage/
+
+############################
+# Environment files
+############################
+.env
+.env.*
+!.env.example
+
+############################
+# PHP
+############################
+/vendor/
+composer.lock
+
+############################
+# Laravel specific
+############################
+/bootstrap/cache/*
+/storage/*.key
+/storage/logs/*
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+public/storage
 .phpunit.result.cache
 
 ############################
-# Xdebug
+# Docker
 ############################
-*.cachegrind
+docker-compose.override.yml
+*.pid
+
+############################
+# Gulp / Sass
+############################
+.sass-cache/
+*.css.map
+
+############################
+# Misc
+############################
+*.zip
+*.tar
+*.gz
+*.rar
