@@ -3,20 +3,22 @@
 namespace App\Services;
 
 use App\Contracts\DiscountInterface;
-use App\Models\Customer;
 
 class OrderService
 {
     private DiscountService $discountService;
     private InvoiceService $invoiceService;
 
-    public function __construct()
+    public function __construct(
+        DiscountService $discountService,
+        InvoiceService $invoiceService
+    )
     {
-        $this->discountService = new DiscountService();
-        $this->invoiceService = new InvoiceService();
+        $this->discountService = $discountService;
+        $this->invoiceService = $invoiceService;
     }
 
-    public function createOrder(Customer $customer, array $products) 
+    public function createOrder(DiscountInterface $customer, array $products) 
     {
         $total = 0;
 
