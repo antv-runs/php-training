@@ -2,35 +2,41 @@ version: "3.8"
 
 services:
   app:
-    build: .
-    container_name: php_mvc_app
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: php_app
     ports:
       - "8000:80"
     volumes:
-      - .:/var/www/html
+      - ./src:/var/www/html
     depends_on:
       - db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   db:
     image: mysql:8
-    container_name: php_mvc_db
+    container_name: php_db
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: shop
+      MYSQL_DATABASE: demo
     ports:
       - "3306:3306"
     volumes:
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./docker/mysql:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: php_mvc_phpmyadmin
-    depends_on:
-      - db
-    environment:
-      PMA_HOST: db
-      PMA_PORT: 3306
-      PMA_USER: root
-      PMA_PASSWORD: root
+    container_name: php_pma
     ports:
       - "8080:80"
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: root
