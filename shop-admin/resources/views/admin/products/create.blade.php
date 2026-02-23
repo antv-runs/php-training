@@ -1,36 +1,35 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Thêm sản phẩm</title>
-</head>
-<body>
+@extends('admin.layouts.master')
 
-<h1>Thêm sản phẩm</h1>
+@section('title', 'Thêm sản phẩm')
 
-<form action="{{ route('products.store') }}" method="POST">
-    @csrf
+@section('content')
+    <div class="bg-white p-6 rounded shadow">
+        <h2 class="text-lg font-semibold">Thêm sản phẩm</h2>
 
-    <div>
-        <label>Tên:</label>
-        <input type="text" name="name" value="{{ old('name') }}">
-        @error('name') <p style="color:red">{{ $message }}</p> @enderror
+        <form action="{{ route('admin.products.store') }}" method="POST" class="mt-4 space-y-4">
+            @csrf
+
+            <div>
+                <label class="block font-medium">Tên:</label>
+                <input type="text" name="name" value="{{ old('name') }}" class="mt-1 block w-full border rounded px-3 py-2">
+                @error('name') <p class="text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
+                <label class="block font-medium">Giá:</label>
+                <input type="text" name="price" value="{{ old('price') }}" class="mt-1 block w-full border rounded px-3 py-2">
+                @error('price') <p class="text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
+                <label class="block font-medium">Mô tả:</label>
+                <textarea name="description" class="mt-1 block w-full border rounded px-3 py-2">{{ old('description') }}</textarea>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded">Lưu</button>
+                <a href="{{ route('admin.products.index') }}" class="text-sm text-gray-600">Quay lại</a>
+            </div>
+        </form>
     </div>
-
-    <div>
-        <label>Giá:</label>
-        <input type="text" name="price" value="{{ old('price') }}">
-        @error('price') <p style="color:red">{{ $message }}</p> @enderror
-    </div>
-
-    <div>
-        <label>Mô tả:</label>
-        <textarea name="description">{{ old('description') }}</textarea>
-    </div>
-
-    <button type="submit">Lưu</button>
-</form>
-
-<a href="{{ route('products.index') }}">Quay lại</a>
-
-</body>
-</html>
+@endsection

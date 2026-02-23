@@ -8,7 +8,7 @@
     <p style="color: green">{{ session('success') }}</p>
 @endif
 
-<a href="{{ route('products.create') }}">Thêm sản phẩm</a>
+<a href="{{ route('admin.products.create') }}" class="inline-block px-3 py-2 bg-indigo-600 text-white rounded">Thêm sản phẩm</a>
 
 <table cellpadding="10">
     <tr>
@@ -26,11 +26,11 @@
         <td>{{ number_format($product->price) }}</td>
         <td>{{ $product->description }}</td>
         <td>
-            <a href="{{ route('products.edit', $product->id) }}">Sửa</a>
+        <a href="{{ route('admin.products.edit', $product->id) }}" class="text-indigo-600 mr-2">Sửa</a>
 
-            <form action="{{ route('products.destroy', $product->id) }}"
-                  method="POST"
-                  style="display:inline;">
+        <form action="{{ route('admin.products.destroy', $product->id) }}"
+            method="POST"
+            style="display:inline;">
                 @csrf
                 @method('DELETE')
                 <button type="submit">Xóa</button>

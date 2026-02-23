@@ -39,7 +39,9 @@ Route::prefix('admin')->middleware(['auth','is_admin'])->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
     // Admin resource routes
     Route::resource('products', \App\Http\Controllers\Admin\ProductController::class, ['as' => 'admin']);
-    // you can add resource routes or additional admin controllers here
+    // Admin categories and users resource routes (placeholders)
+    Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class, ['as' => 'admin']);
+    Route::resource('users', \App\Http\Controllers\Admin\UserController::class, ['as' => 'admin']);
 });
 
 require __DIR__.'/auth.php';
