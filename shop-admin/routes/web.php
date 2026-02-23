@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,7 +14,32 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    // If user is authenticated, send them to the right dashboard.
+    if (auth()->check()) {
+        $user = auth()->user();
+        if (method_exists($user, 'isAdmin') && $user->isAdmin()) {
+            return redirect('/admin');
+        }
+
+        return redirect('/dashboard');
+    }
+
+    // Otherwise, redirect unauthenticated visitors to the login page
+    return redirect()->route('login');
 });
 
-Route::resource('products', ProductController::class);
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth'])->name('dashboard');
+
+// Admin routes
+use App\Http\Controllers\Admin\AdminController;
+
+Route::prefix('admin')->middleware(['auth','is_admin'])->group(function () {
+    Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
+    // Admin resource routes
+    Route::resource('products', \App\Http\Controllers\Admin\ProductController::class, ['as' => 'admin']);
+    // you can add resource routes or additional admin controllers here
+});
+
+require __DIR__.'/auth.php';

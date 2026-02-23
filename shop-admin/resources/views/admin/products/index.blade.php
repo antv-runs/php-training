@@ -1,9 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Danh sách sản phẩm</title>
-</head>
-<body>
+@extends('admin.layouts.master')
+
+@section('content')
 
 <h1>Danh sách sản phẩm</h1>
 
@@ -45,5 +42,4 @@
 
 {{ $products->links() }}
 
-</body>
-</html>
+@endsection
