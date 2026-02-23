@@ -30,7 +30,7 @@ class ProductController extends Controller
         Product::create($request->all());
 
         return redirect()->route('admin.products.index')
-                         ->with('success', 'Thêm sản phẩm thành công');
+             ->with('success', 'Product created successfully');
     }
 
     public function edit($id)
@@ -50,15 +50,15 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
         $product->update($request->all());
 
-        return redirect()->route('admin.products.index')
-                         ->with('success', 'Cập nhật thành công');
+    return redirect()->route('admin.products.index')
+             ->with('success', 'Product updated successfully');
     }
 
     public function destroy($id)
     {
         Product::destroy($id);
 
-        return redirect()->route('admin.products.index')
-                         ->with('success', 'Xóa thành công');
+    return redirect()->route('admin.products.index')
+             ->with('success', 'Product deleted successfully');
     }
 }

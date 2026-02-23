@@ -28,8 +28,12 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+use App\Models\Product;
+
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    // show product list to regular users (read-only)
+    $products = Product::latest()->paginate(10);
+    return view('dashboard', compact('products'));
 })->middleware(['auth'])->name('dashboard');
 
 // Admin routes
@@ -39,7 +43,6 @@ Route::prefix('admin')->middleware(['auth','is_admin'])->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
     // Admin resource routes
     Route::resource('products', \App\Http\Controllers\Admin\ProductController::class, ['as' => 'admin']);
-    // Admin categories and users resource routes (placeholders)
     Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class, ['as' => 'admin']);
     Route::resource('users', \App\Http\Controllers\Admin\UserController::class, ['as' => 'admin']);
 });

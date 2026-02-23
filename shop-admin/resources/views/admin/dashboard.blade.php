@@ -4,22 +4,22 @@
 
 @section('content')
     <div class="max-w-7xl mx-auto">
-        <div class="bg-white p-6 rounded shadow">
+                <div class="bg-white p-6 rounded shadow">
             <h2 class="text-xl font-semibold">Admin Dashboard</h2>
-            <p class="mt-2 text-gray-600">Chào mừng, {{ auth()->user() ? auth()->user()->name : 'Admin' }}.</p>
+            <p class="mt-2 text-gray-600">Welcome, {{ auth()->user() ? auth()->user()->name : 'Admin' }}.</p>
 
             <!-- Tabs -->
             <div class="mt-6">
                 <div class="border-b">
-                    <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                        <button id="tab-content" class="py-2 px-3 border-b-2 border-indigo-500 text-sm font-medium text-indigo-600">Nội dung học</button>
-                        <button id="tab-exercises" class="py-2 px-3 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700">Bài tập</button>
-                        <button id="tab-other" class="py-2 px-3 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700">Khác</button>
+                    <nav class="-mb-px flex space-x-8" role="tablist" aria-label="Admin tabs">
+                        <button id="tab-content" role="tab" aria-controls="panel-content" aria-selected="true" class="py-2 px-3 border-b-2 border-indigo-500 text-sm font-medium text-indigo-600 cursor-pointer">Learning Content</button>
+                        <button id="tab-exercises" role="tab" aria-controls="panel-exercises" aria-selected="false" class="py-2 px-3 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 cursor-pointer">Exercises</button>
+                        <button id="tab-other" role="tab" aria-controls="panel-other" aria-selected="false" class="py-2 px-3 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 cursor-pointer">Other</button>
                     </nav>
                 </div>
 
-                <div id="panel-content" class="mt-4">
-                    <h3 class="text-lg font-semibold">Nội dung học</h3>
+                <div id="panel-content" class="mt-4" role="tabpanel" aria-labelledby="tab-content">
+                    <h3 class="text-lg font-semibold">Learning Content</h3>
                     <ul class="list-disc list-inside mt-2 text-gray-700">
                         <li>CRUD Category</li>
                         <li>CRUD Product</li>
@@ -28,21 +28,47 @@
                     </ul>
                 </div>
 
-                <div id="panel-exercises" class="hidden mt-4">
-                    <h3 class="text-lg font-semibold">Bài tập</h3>
+                <div id="panel-exercises" class="hidden mt-4" role="tabpanel" aria-labelledby="tab-exercises">
+                    <h3 class="text-lg font-semibold">Exercises</h3>
                     <ul class="list-disc list-inside mt-2 text-gray-700">
-                        <li>Hoàn thiện admin: Category</li>
-                        <li>Hoàn thiện admin: Product</li>
-                        <li>Hoàn thiện admin: User</li>
+                        <li>Complete admin: Category management</li>
+                        <li>Complete admin: Product management</li>
+                        <li>Complete admin: User management</li>
                     </ul>
                 </div>
 
-                <div id="panel-other" class="hidden mt-4">
-                    <h3 class="text-lg font-semibold">Khác</h3>
-                    <p class="mt-2 text-gray-700">Các công cụ và thông tin bổ sung sẽ được cập nhật ở đây.</p>
+                <div id="panel-other" class="hidden mt-4" role="tabpanel" aria-labelledby="tab-other">
+                    <h3 class="text-lg font-semibold">Other</h3>
+                    <p class="mt-2 text-gray-700">Additional tools and information will be updated here.</p>
                 </div>
             </div>
         </div>
+
+    <script>
+        // Enhanced tab switching: manage aria-selected and active classes
+        const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+        const panels = Array.from(document.querySelectorAll('[role="tabpanel"]'));
+
+        function activateTab(tab) {
+            tabs.forEach(t => {
+                t.setAttribute('aria-selected', t === tab ? 'true' : 'false');
+                t.classList.remove('border-indigo-500','text-indigo-600');
+                t.classList.add('border-transparent','text-gray-500');
+            });
+
+            panels.forEach(p => p.classList.add('hidden'));
+
+            tab.classList.add('border-indigo-500','text-indigo-600');
+            const panel = document.getElementById(tab.getAttribute('aria-controls'));
+            if (panel) panel.classList.remove('hidden');
+        }
+
+        tabs.forEach(t => t.addEventListener('click', () => activateTab(t)));
+
+        // ensure first tab active on load
+        const defaultTab = document.querySelector('[role="tab"][aria-selected="true"]') || tabs[0];
+        if (defaultTab) activateTab(defaultTab);
+    </script>
     </div>
 
     <script>

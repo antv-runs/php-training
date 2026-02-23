@@ -7,20 +7,20 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    // Hiển thị danh sách
+    // Display list
     public function index()
     {
         $products = Product::latest()->paginate(10);
         return view('products.index', compact('products'));
     }
 
-    // Hiển thị form tạo mới
+    // Show create form
     public function create()
     {
         return view('products.create');
     }
 
-    // Lưu dữ liệu mới
+    // Store new data
     public function store(Request $request)
     {
         $request->validate([
@@ -32,17 +32,17 @@ class ProductController extends Controller
         Product::create($request->all());
 
         return redirect()->route('products.index')
-                         ->with('success', 'Thêm sản phẩm thành công');
+                         ->with('success', 'Product created successfully');
     }
 
-    // Hiển thị form chỉnh sửa
+    // Show edit form
     public function edit($id)
     {
         $product = Product::findOrFail($id);
         return view('products.edit', compact('product'));
     }
 
-    // Cập nhật dữ liệu
+    // Update data
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -55,15 +55,15 @@ class ProductController extends Controller
         $product->update($request->all());
 
         return redirect()->route('products.index')
-                         ->with('success', 'Cập nhật thành công');
+                         ->with('success', 'Product updated successfully');
     }
 
-    // Xóa
+    // Delete
     public function destroy($id)
     {
         Product::destroy($id);
 
         return redirect()->route('products.index')
-                         ->with('success', 'Xóa thành công');
+                         ->with('success', 'Product deleted successfully');
     }
 }
