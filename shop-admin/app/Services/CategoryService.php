@@ -69,7 +69,7 @@ class CategoryService implements CategoryServiceInterface
     }
 
     /**
-     * Delete category
+     * Delete category (soft delete)
      */
     public function deleteCategory($id)
     {
@@ -87,5 +87,50 @@ class CategoryService implements CategoryServiceInterface
             'name' => 'required|string|max:255',
             'description' => 'nullable|string'
         ])->validated();
+    }
+
+    /**
+     * Get trashed categories
+     */
+    public function getTrashed($perPage = 15)
+    {
+        return Category::onlyTrashed()->latest('deleted_at')->paginate($perPage);
+    }
+
+    /**
+     * Restore category
+     */
+    public function restoreCategory($id)
+    {
+        $category = Category::withTrashed()->findOrFail($id);
+        
+        if (!$category->trashed()) {
+            return [
+                'success' => false,
+                'message' => 'Category is not deleted.'
+            ];
+        }
+
+        $category->restore();
+
+        return [
+            'success' => true,
+            'message' => 'Category restored successfully',
+            'data' => $category
+        ];
+    }
+
+    /**
+     * Force delete category
+     */
+    public function forceDeleteCategory($id)
+    {
+        $category = Category::withTrashed()->findOrFail($id);
+        $category->forceDelete();
+
+        return [
+            'success' => true,
+            'message' => 'Category permanently deleted'
+        ];
     }
 }

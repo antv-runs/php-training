@@ -15,7 +15,16 @@ class UserService implements UserServiceInterface
      */
     public function buildQuery(Request $request)
     {
-        $query = User::query();
+        $status = $request->input('status', 'active');
+        
+        // Query builder based on status
+        if ($status === 'deleted') {
+            $query = User::onlyTrashed();
+        } elseif ($status === 'all') {
+            $query = User::withTrashed();
+        } else {
+            $query = User::query();
+        }
 
         // Search by name or email
         if ($request->filled('search')) {
@@ -27,7 +36,7 @@ class UserService implements UserServiceInterface
         }
 
         // Filter by role
-        if ($request->filled('role')) {
+        if ($request->filled('role') && $status !== 'deleted') {
             $query->where('role', $request->input('role'));
         }
 
@@ -35,7 +44,7 @@ class UserService implements UserServiceInterface
         $sortBy = $request->input('sort_by', 'id');
         $sortOrder = $request->input('sort_order', 'desc');
 
-        if (in_array($sortBy, ['id', 'name', 'email', 'role', 'created_at'])) {
+        if (in_array($sortBy, ['id', 'name', 'email', 'role', 'created_at', 'deleted_at'])) {
             $query->orderBy($sortBy, $sortOrder);
         }
 
@@ -62,6 +71,7 @@ class UserService implements UserServiceInterface
             ],
             'filters' => [
                 'search' => $request->input('search'),
+                'status' => $request->input('status', 'active'),
                 'role' => $request->input('role'),
                 'sort_by' => $request->input('sort_by', 'id'),
                 'sort_order' => $request->input('sort_order', 'desc'),
@@ -116,7 +126,7 @@ class UserService implements UserServiceInterface
     }
 
     /**
-     * Delete user
+     * Delete user (soft delete)
      */
     public function deleteUser(User $user)
     {
@@ -133,6 +143,76 @@ class UserService implements UserServiceInterface
         return [
             'success' => true,
             'message' => 'User deleted successfully'
+        ];
+    }
+
+    /**
+     * Get trashed users
+     */
+    public function getTrashed(\Illuminate\Http\Request $request)
+    {
+        $perPage = (int)$request->input('per_page', 15);
+        $query = User::onlyTrashed();
+
+        // Search by name or email
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query->latest('deleted_at')->paginate($perPage);
+
+        return [
+            'data' => $users->items(),
+            'pagination' => [
+                'total' => $users->total(),
+                'per_page' => $users->perPage(),
+                'current_page' => $users->currentPage(),
+                'last_page' => $users->lastPage(),
+                'from' => $users->firstItem(),
+                'to' => $users->lastItem(),
+            ],
+            'paginator' => $users
+        ];
+    }
+
+    /**
+     * Restore user
+     */
+    public function restoreUser($id)
+    {
+        $user = User::withTrashed()->findOrFail($id);
+        
+        if (!$user->trashed()) {
+            return [
+                'success' => false,
+                'message' => 'User is not deleted.'
+            ];
+        }
+
+        $user->restore();
+
+        return [
+            'success' => true,
+            'message' => 'User restored successfully',
+            'data' => $user
+        ];
+    }
+
+    /**
+     * Force delete user
+     */
+    public function forceDeleteUser($id)
+    {
+        $user = User::withTrashed()->findOrFail($id);
+        $user->forceDelete();
+
+        return [
+            'success' => true,
+            'message' => 'User permanently deleted'
         ];
     }
 }

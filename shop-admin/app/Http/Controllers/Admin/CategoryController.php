@@ -61,4 +61,37 @@ class CategoryController extends Controller
         $this->categoryService->deleteCategory($id);
         return redirect()->route('admin.categories.index')->with('success', 'Category deleted successfully');
     }
+
+    /**
+     * Show trashed categories
+     */
+    public function trashed()
+    {
+        $categories = $this->categoryService->getTrashed(15);
+        return view('admin.categories.trashed', compact('categories'));
+    }
+
+    /**
+     * Restore category
+     */
+    public function restore($id)
+    {
+        $result = $this->categoryService->restoreCategory($id);
+
+        if (!$result['success']) {
+            return redirect()->route('admin.categories.trashed')->with('error', $result['message']);
+        }
+
+        return redirect()->route('admin.categories.trashed')->with('success', $result['message']);
+    }
+
+    /**
+     * Force delete category
+     */
+    public function forceDelete($id)
+    {
+        $result = $this->categoryService->forceDeleteCategory($id);
+
+        return redirect()->route('admin.categories.trashed')->with('success', $result['message']);
+    }
 }

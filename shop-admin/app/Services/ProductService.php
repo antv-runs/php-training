@@ -50,11 +50,13 @@ class ProductService implements ProductServiceInterface
     }
 
     /**
-     * Delete product
+     * Delete product (soft delete)
      */
     public function deleteProduct($id)
     {
-        return Product::destroy($id);
+        $product = Product::findOrFail($id);
+        $product->delete();
+        return true;
     }
 
     /**
@@ -70,5 +72,50 @@ class ProductService implements ProductServiceInterface
         ];
 
         return validator($data, $rules)->validate();
+    }
+
+    /**
+     * Get trashed products
+     */
+    public function getTrashed($perPage = 10)
+    {
+        return Product::onlyTrashed()->with('category')->latest('deleted_at')->paginate($perPage);
+    }
+
+    /**
+     * Restore product
+     */
+    public function restoreProduct($id)
+    {
+        $product = Product::withTrashed()->findOrFail($id);
+        
+        if (!$product->trashed()) {
+            return [
+                'success' => false,
+                'message' => 'Product is not deleted.'
+            ];
+        }
+
+        $product->restore();
+
+        return [
+            'success' => true,
+            'message' => 'Product restored successfully',
+            'data' => $product
+        ];
+    }
+
+    /**
+     * Force delete product
+     */
+    public function forceDeleteProduct($id)
+    {
+        $product = Product::withTrashed()->findOrFail($id);
+        $product->forceDelete();
+
+        return [
+            'success' => true,
+            'message' => 'Product permanently deleted'
+        ];
     }
 }

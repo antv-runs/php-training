@@ -2,6 +2,7 @@
 
 namespace App\Contracts;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 
 interface UserServiceInterface
@@ -29,10 +30,25 @@ interface UserServiceInterface
     /**
      * Update user
      */
-    public function updateUser($user, array $data);
+    public function updateUser(User $user, array $data);
 
     /**
-     * Delete user
+     * Delete user (soft delete)
      */
-    public function deleteUser($user);
+    public function deleteUser(User $user);
+
+    /**
+     * Get trashed users
+     */
+    public function getTrashed(Request $request);
+
+    /**
+     * Restore user
+     */
+    public function restoreUser($id);
+
+    /**
+     * Force delete user
+     */
+    public function forceDeleteUser($id);
 }

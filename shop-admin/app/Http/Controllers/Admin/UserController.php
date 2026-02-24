@@ -119,5 +119,60 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.index')->with('success', $result['message']);
     }
+
+    /**
+     * Show trashed users
+     */
+    public function trashed(Request $request)
+    {
+        $data = $this->userService->getTrashed($request);
+        $roles = $this->userService->getRoles();
+
+        if ($request->wantsJson()) {
+            return response()->json($data);
+        }
+
+        return view('admin.users.trashed', [
+            'users' => $data['data'],
+            'pagination' => $data['pagination'],
+            'paginator' => $data['paginator'],
+            'roles' => $roles
+        ]);
+    }
+
+    /**
+     * Restore user
+     */
+    public function restore($id, Request $request)
+    {
+        $result = $this->userService->restoreUser($id);
+
+        if (!$result['success']) {
+            if ($request->wantsJson()) {
+                return response()->json(['message' => $result['message']], 400);
+            }
+            return redirect()->route('admin.users.trashed')->with('error', $result['message']);
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json(['message' => $result['message'], 'data' => $result['data']]);
+        }
+
+        return redirect()->route('admin.users.trashed')->with('success', $result['message']);
+    }
+
+    /**
+     * Force delete user
+     */
+    public function forceDelete($id, Request $request)
+    {
+        $result = $this->userService->forceDeleteUser($id);
+
+        if ($request->wantsJson()) {
+            return response()->json(['message' => $result['message']]);
+        }
+
+        return redirect()->route('admin.users.trashed')->with('success', $result['message']);
+    }
 }
 

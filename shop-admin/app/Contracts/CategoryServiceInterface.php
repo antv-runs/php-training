@@ -2,6 +2,8 @@
 
 namespace App\Contracts;
 
+use App\Models\Category;
+
 interface CategoryServiceInterface
 {
     /**
@@ -22,10 +24,10 @@ interface CategoryServiceInterface
     /**
      * Update category
      */
-    public function updateCategory($category, array $data);
+    public function updateCategory(Category $category, array $data);
 
     /**
-     * Delete category
+     * Delete category (soft delete)
      */
     public function deleteCategory($id);
 
@@ -33,4 +35,19 @@ interface CategoryServiceInterface
      * Validate category data
      */
     public function validateCategory(array $data);
+
+    /**
+     * Get trashed categories
+     */
+    public function getTrashed($perPage = 15);
+
+    /**
+     * Restore category
+     */
+    public function restoreCategory($id);
+
+    /**
+     * Force delete category
+     */
+    public function forceDeleteCategory($id);
 }

@@ -67,4 +67,37 @@ class ProductController extends Controller
         return redirect()->route('admin.products.index')
              ->with('success', 'Product deleted successfully');
     }
+
+    /**
+     * Show trashed products
+     */
+    public function trashed()
+    {
+        $products = $this->productService->getTrashed(10);
+        return view('admin.products.trashed', compact('products'));
+    }
+
+    /**
+     * Restore product
+     */
+    public function restore($id)
+    {
+        $result = $this->productService->restoreProduct($id);
+
+        if (!$result['success']) {
+            return redirect()->route('admin.products.trashed')->with('error', $result['message']);
+        }
+
+        return redirect()->route('admin.products.trashed')->with('success', $result['message']);
+    }
+
+    /**
+     * Force delete product
+     */
+    public function forceDelete($id)
+    {
+        $result = $this->productService->forceDeleteProduct($id);
+
+        return redirect()->route('admin.products.trashed')->with('success', $result['message']);
+    }
 }

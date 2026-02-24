@@ -56,6 +56,19 @@ Route::prefix('admin')->middleware(['auth','is_admin'])->group(function () {
     Route::patch('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('admin.profile.update');
     Route::delete('/profile/image', [\App\Http\Controllers\Admin\ProfileController::class, 'deleteImage'])->name('admin.profile.deleteImage');
 
+    // Soft delete routes (MUST be before resource routes)
+    Route::get('/users/trashed', [\App\Http\Controllers\Admin\UserController::class, 'trashed'])->name('admin.users.trashed');
+    Route::patch('/users/{id}/restore', [\App\Http\Controllers\Admin\UserController::class, 'restore'])->name('admin.users.restore');
+    Route::delete('/users/{id}/force-delete', [\App\Http\Controllers\Admin\UserController::class, 'forceDelete'])->name('admin.users.forceDelete');
+
+    Route::get('/products/trashed', [\App\Http\Controllers\Admin\ProductController::class, 'trashed'])->name('admin.products.trashed');
+    Route::patch('/products/{id}/restore', [\App\Http\Controllers\Admin\ProductController::class, 'restore'])->name('admin.products.restore');
+    Route::delete('/products/{id}/force-delete', [\App\Http\Controllers\Admin\ProductController::class, 'forceDelete'])->name('admin.products.forceDelete');
+
+    Route::get('/categories/trashed', [\App\Http\Controllers\Admin\CategoryController::class, 'trashed'])->name('admin.categories.trashed');
+    Route::patch('/categories/{id}/restore', [\App\Http\Controllers\Admin\CategoryController::class, 'restore'])->name('admin.categories.restore');
+    Route::delete('/categories/{id}/force-delete', [\App\Http\Controllers\Admin\CategoryController::class, 'forceDelete'])->name('admin.categories.forceDelete');
+
     // Admin resource routes
     Route::resource('products', \App\Http\Controllers\Admin\ProductController::class, ['as' => 'admin']);
     Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class, ['as' => 'admin']);

@@ -2,6 +2,8 @@
 
 namespace App\Contracts;
 
+use App\Models\Product;
+
 interface ProductServiceInterface
 {
     /**
@@ -27,10 +29,10 @@ interface ProductServiceInterface
     /**
      * Update product
      */
-    public function updateProduct($product, array $data);
+    public function updateProduct(Product $product, array $data);
 
     /**
-     * Delete product
+     * Delete product (soft delete)
      */
     public function deleteProduct($id);
 
@@ -38,4 +40,19 @@ interface ProductServiceInterface
      * Validate product data
      */
     public function validateProduct(array $data, $id = null);
+
+    /**
+     * Get trashed products
+     */
+    public function getTrashed($perPage = 10);
+
+    /**
+     * Restore product
+     */
+    public function restoreProduct($id);
+
+    /**
+     * Force delete product
+     */
+    public function forceDeleteProduct($id);
 }

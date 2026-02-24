@@ -12,7 +12,7 @@
 
         <!-- Search & Filter Form -->
         <form method="GET" action="{{ route('admin.users.index') }}" class="mb-6 p-4 bg-gray-50 rounded">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                 <div>
                     <label class="block text-sm font-medium mb-1">Search (Name / Email)</label>
                     <input type="text" name="search" placeholder="Search..."
@@ -21,8 +21,17 @@
                 </div>
 
                 <div>
+                    <label class="block text-sm font-medium mb-1">Status</label>
+                    <select name="status" class="w-full border rounded px-3 py-2 text-sm">
+                        <option value="active" {{ ($filters['status'] ?? 'active') === 'active' ? 'selected' : '' }}>Active</option>
+                        <option value="deleted" {{ ($filters['status'] ?? 'active') === 'deleted' ? 'selected' : '' }}>Deleted (Disabled)</option>
+                        <option value="all" {{ ($filters['status'] ?? 'active') === 'all' ? 'selected' : '' }}>All</option>
+                    </select>
+                </div>
+
+                <div>
                     <label class="block text-sm font-medium mb-1">Role</label>
-                    <select name="role" class="w-full border rounded px-3 py-2 text-sm">
+                    <select name="role" class="w-full border rounded px-3 py-2 text-sm" {{ ($filters['status'] ?? 'active') === 'deleted' ? 'disabled' : '' }}>
                         <option value="">-- All Roles --</option>
                         @foreach($roles as $value => $label)
                             <option value="{{ $value }}" {{ ($filters['role'] ?? '') === $value ? 'selected' : '' }}>
@@ -40,6 +49,9 @@
                         <option value="email" {{ ($filters['sort_by'] ?? 'id') === 'email' ? 'selected' : '' }}>Email</option>
                         <option value="role" {{ ($filters['sort_by'] ?? 'id') === 'role' ? 'selected' : '' }}>Role</option>
                         <option value="created_at" {{ ($filters['sort_by'] ?? 'id') === 'created_at' ? 'selected' : '' }}>Date Created</option>
+                        @if(($filters['status'] ?? 'active') === 'deleted')
+                            <option value="deleted_at" {{ ($filters['sort_by'] ?? 'id') === 'deleted_at' ? 'selected' : '' }}>Deleted Date</option>
+                        @endif
                     </select>
                 </div>
 
@@ -52,7 +64,13 @@
 
         <!-- Results Info -->
         <div class="mb-3 text-sm text-gray-600">
-            Showing {{ $pagination['from'] ?? 0 }} to {{ $pagination['to'] ?? 0 }} of {{ $pagination['total'] ?? 0 }} users
+            @if(($filters['status'] ?? 'active') === 'deleted')
+                Showing {{ $pagination['from'] ?? 0 }} to {{ $pagination['to'] ?? 0 }} of {{ $pagination['total'] ?? 0 }} <strong>disabled</strong> users
+            @elseif(($filters['status'] ?? 'active') === 'all')
+                Showing {{ $pagination['from'] ?? 0 }} to {{ $pagination['to'] ?? 0 }} of {{ $pagination['total'] ?? 0 }} <strong>total</strong> users
+            @else
+                Showing {{ $pagination['from'] ?? 0 }} to {{ $pagination['to'] ?? 0 }} of {{ $pagination['total'] ?? 0 }} <strong>active</strong> users
+            @endif
         </div>
 
         <!-- Users Table -->
@@ -63,13 +81,18 @@
                     <th class="px-4 py-2 text-left">Name</th>
                     <th class="px-4 py-2 text-left">Email</th>
                     <th class="px-4 py-2 text-left">Role</th>
-                    <th class="px-4 py-2 text-left">Created</th>
+                    <th class="px-4 py-2 text-left">Status</th>
+                    @if(($filters['status'] ?? 'active') === 'deleted')
+                        <th class="px-4 py-2 text-left">Deleted At</th>
+                    @else
+                        <th class="px-4 py-2 text-left">Created</th>
+                    @endif
                     <th class="px-4 py-2 text-left">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($users as $user)
-                    <tr class="border-t">
+                    <tr class="border-t {{ $user->trashed() ? 'bg-red-50' : '' }}">
                         <td class="px-4 py-2">{{ $user->id }}</td>
                         <td class="px-4 py-2">{{ $user->name }}</td>
                         <td class="px-4 py-2">{{ $user->email }}</td>
@@ -78,22 +101,52 @@
                                 {{ ucfirst($user->role) }}
                             </span>
                         </td>
-                        <td class="px-4 py-2 text-sm text-gray-600">{{ $user->created_at->format('M d, Y') }}</td>
                         <td class="px-4 py-2">
-                            <a href="{{ route('admin.users.edit', $user->id) }}" class="text-indigo-600 mr-2">Edit</a>
+                            @if($user->trashed())
+                                <span class="px-2 py-1 text-xs rounded bg-red-100 text-red-800">Disabled</span>
+                            @else
+                                <span class="px-2 py-1 text-xs rounded bg-green-100 text-green-800">Active</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-2 text-sm text-gray-600">
+                            @if($user->trashed())
+                                {{ $user->deleted_at->format('M d, Y H:i') }}
+                            @else
+                                {{ $user->created_at->format('M d, Y') }}
+                            @endif
+                        </td>
+                        <td class="px-4 py-2">
+                            @if($user->trashed())
+                                {{-- Restore button for deleted users --}}
+                                <form action="{{ route('admin.users.restore', $user->id) }}" method="POST" style="display:inline">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="text-green-600 mr-2 text-sm">Restore</button>
+                                </form>
 
-                            @if(auth()->id() !== $user->id)
-                                <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" style="display:inline">
+                                {{-- Force delete button --}}
+                                <form action="{{ route('admin.users.forceDelete', $user->id) }}" method="POST" style="display:inline" onsubmit="return confirm('Permanently delete this user? This action cannot be undone.')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-red-600">Delete</button>
+                                    <button type="submit" class="text-red-600 text-sm">Delete Forever</button>
                                 </form>
+                            @else
+                                {{-- Edit and delete buttons for active users --}}
+                                <a href="{{ route('admin.users.edit', $user->id) }}" class="text-indigo-600 mr-2 text-sm">Edit</a>
+
+                                @if(auth()->id() !== $user->id)
+                                    <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" style="display:inline" onsubmit="return confirm('Disable this user?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-600 text-sm">Disable</button>
+                                    </form>
+                                @endif
                             @endif
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="px-4 py-8 text-center text-gray-600">
+                        <td colspan="7" class="px-4 py-8 text-center text-gray-600">
                             No users found.
                         </td>
                     </tr>
