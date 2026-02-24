@@ -2,11 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Contracts\ProfileServiceInterface;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
+    /**
+     * @var ProfileServiceInterface
+     */
+    private $profileService;
+
+    /**
+     * Inject ProfileServiceInterface
+     */
+    public function __construct(ProfileServiceInterface $profileService)
+    {
+        $this->profileService = $profileService;
+    }
+
     /**
      * Show the user's profile.
      */
@@ -32,28 +45,21 @@ class ProfileController extends Controller
     {
         $user = auth()->user();
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
-            'bio' => ['nullable', 'string', 'max:500'],
-            'profile_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
-        ]);
+        $validated = $this->profileService->validateProfileData(
+            $request->all(),
+            $user->id
+        );
 
-        // Handle image upload
+        // Handle image file
         if ($request->hasFile('profile_image')) {
-            // Delete old image if exists
-            if ($user->profile_image && Storage::disk('public')->exists($user->profile_image)) {
-                Storage::disk('public')->delete($user->profile_image);
-            }
-
-            // Store new image
-            $path = $request->file('profile_image')->store('profile-images', 'public');
-            $validated['profile_image'] = $path;
+            $validated['profile_image'] = $request->file('profile_image');
+        } else {
+            unset($validated['profile_image']);
         }
 
-        $user->update($validated);
+        $result = $this->profileService->updateProfile($user, $validated);
 
-        return redirect()->route('profile.show')->with('success', 'Profile updated successfully!');
+        return redirect()->route('profile.show')->with('success', $result['message']);
     }
 
     /**
@@ -62,13 +68,8 @@ class ProfileController extends Controller
     public function deleteImage()
     {
         $user = auth()->user();
+        $result = $this->profileService->deleteProfileImage($user);
 
-        if ($user->profile_image && Storage::disk('public')->exists($user->profile_image)) {
-            Storage::disk('public')->delete($user->profile_image);
-        }
-
-        $user->update(['profile_image' => null]);
-
-        return back()->with('success', 'Profile image deleted successfully!');
+        return back()->with('success', $result['message']);
     }
 }

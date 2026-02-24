@@ -4,77 +4,28 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Contracts\UserServiceInterface;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
     /**
-     * Build query with search and filters
-     * This method is designed to be API-friendly
+     * @var UserServiceInterface
      */
-    private function buildQuery(Request $request)
-    {
-        $query = User::query();
-
-        // Search by name or email
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-            });
-        }
-
-        // Filter by role
-        if ($request->filled('role')) {
-            $query->where('role', $request->input('role'));
-        }
-
-        // Sort
-        $sortBy = $request->input('sort_by', 'id');
-        $sortOrder = $request->input('sort_order', 'desc');
-
-        if (in_array($sortBy, ['id', 'name', 'email', 'role', 'created_at'])) {
-            $query->orderBy($sortBy, $sortOrder);
-        }
-
-        return $query;
-    }
+    private $userService;
 
     /**
-     * Get paginated users data
-     * Returns array format for API compatibility
+     * Inject UserServiceInterface
      */
-    private function getListData(Request $request)
+    public function __construct(UserServiceInterface $userService)
     {
-        $perPage = (int)$request->input('per_page', 15);
-        $users = $this->buildQuery($request)->paginate($perPage);
-
-        return [
-            'data' => $users->items(),
-            'pagination' => [
-                'total' => $users->total(),
-                'per_page' => $users->perPage(),
-                'current_page' => $users->currentPage(),
-                'last_page' => $users->lastPage(),
-                'from' => $users->firstItem(),
-                'to' => $users->lastItem(),
-            ],
-            'filters' => [
-                'search' => $request->input('search'),
-                'role' => $request->input('role'),
-                'sort_by' => $request->input('sort_by', 'id'),
-                'sort_order' => $request->input('sort_order', 'desc'),
-            ]
-        ];
+        $this->userService = $userService;
     }
 
     public function index(Request $request)
     {
-        $data = $this->getListData($request);
-        $roles = ['admin' => 'Admin', 'user' => 'User'];
+        $data = $this->userService->getListData($request);
+        $roles = $this->userService->getRoles();
 
         // Return JSON if requested (API compatibility)
         if ($request->wantsJson() || $request->query('api')) {
@@ -87,13 +38,13 @@ class UserController extends Controller
             'pagination' => $data['pagination'],
             'filters' => $data['filters'],
             'roles' => $roles,
-            'paginator' => $this->buildQuery($request)->paginate((int)$request->input('per_page', 15))
+            'paginator' => $data['paginator']
         ]);
     }
 
     public function create()
     {
-        $roles = ['admin' => 'Admin', 'user' => 'User'];
+        $roles = $this->userService->getRoles();
         return view('admin.users.create', compact('roles'));
     }
 
@@ -106,9 +57,7 @@ class UserController extends Controller
             'role' => 'required|in:admin,user',
         ]);
 
-        $data['password'] = Hash::make($data['password']);
-
-        User::create($data);
+        $this->userService->createUser($data);
 
         if ($request->wantsJson()) {
             return response()->json(['message' => 'User created successfully'], 201);
@@ -120,7 +69,7 @@ class UserController extends Controller
     public function edit($id)
     {
         $user = User::findOrFail($id);
-        $roles = ['admin' => 'Admin', 'user' => 'User'];
+        $roles = $this->userService->getRoles();
         return view('admin.users.edit', compact('user', 'roles'));
     }
 
@@ -135,48 +84,40 @@ class UserController extends Controller
             'role' => 'required|in:admin,user',
         ]);
 
-        if (!empty($data['password'])) {
-            $data['password'] = Hash::make($data['password']);
-        } else {
-            unset($data['password']);
-        }
+        $result = $this->userService->updateUser($user, $data);
 
-        // Prevent admin from removing their own admin role accidentally
-        if (Auth::id() === $user->id && ($data['role'] ?? $user->role) !== 'admin') {
+        if (!$result['success']) {
             if ($request->wantsJson()) {
-                return response()->json(['message' => 'You cannot remove your own admin role.'], 403);
+                return response()->json(['message' => $result['message']], 403);
             }
-            return redirect()->route('admin.users.index')->with('error', 'You cannot remove your own admin role.');
+            return redirect()->route('admin.users.index')->with('error', $result['message']);
         }
-
-        $user->update($data);
 
         if ($request->wantsJson()) {
-            return response()->json(['message' => 'User updated successfully', 'data' => $user]);
+            return response()->json(['message' => $result['message'], 'data' => $result['data']]);
         }
 
-        return redirect()->route('admin.users.index')->with('success', 'User updated successfully');
+        return redirect()->route('admin.users.index')->with('success', $result['message']);
     }
 
     public function destroy($id, Request $request)
     {
         $user = User::findOrFail($id);
 
-        // Prevent deleting yourself
-        if (Auth::id() === $user->id) {
-            if ($request->wantsJson()) {
-                return response()->json(['message' => 'You cannot delete your own account.'], 403);
-            }
-            return redirect()->route('admin.users.index')->with('error', 'You cannot delete your own account.');
-        }
+        $result = $this->userService->deleteUser($user);
 
-        $user->delete();
+        if (!$result['success']) {
+            if ($request->wantsJson()) {
+                return response()->json(['message' => $result['message']], 403);
+            }
+            return redirect()->route('admin.users.index')->with('error', $result['message']);
+        }
 
         if ($request->wantsJson()) {
-            return response()->json(['message' => 'User deleted successfully']);
+            return response()->json(['message' => $result['message']]);
         }
 
-        return redirect()->route('admin.users.index')->with('success', 'User deleted successfully');
+        return redirect()->route('admin.users.index')->with('success', $result['message']);
     }
 }
 

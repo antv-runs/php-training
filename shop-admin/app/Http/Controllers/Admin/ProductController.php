@@ -4,33 +4,40 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
-use App\Models\Category;
+use App\Contracts\ProductServiceInterface;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    /**
+     * @var ProductServiceInterface
+     */
+    private $productService;
+
+    /**
+     * Inject ProductServiceInterface
+     */
+    public function __construct(ProductServiceInterface $productService)
+    {
+        $this->productService = $productService;
+    }
+
     public function index()
     {
-        $products = Product::with('category')->latest()->paginate(10);
+        $products = $this->productService->getAllProducts(10);
         return view('admin.products.index', compact('products'));
     }
 
     public function create()
     {
-        $categories = Category::all();
+        $categories = $this->productService->getCategories();
         return view('admin.products.create', compact('categories'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|max:255',
-            'price' => 'required|numeric',
-            'description' => 'nullable',
-            'category_id' => 'nullable|exists:categories,id'
-        ]);
-
-        Product::create($request->all());
+        $validated = $this->productService->validateProduct($request->all());
+        $this->productService->createProduct($validated);
 
         return redirect()->route('admin.products.index')
              ->with('success', 'Product created successfully');
@@ -38,32 +45,26 @@ class ProductController extends Controller
 
     public function edit($id)
     {
-        $product = Product::findOrFail($id);
-        $categories = Category::all();
+        $product = $this->productService->getProduct($id);
+        $categories = $this->productService->getCategories();
         return view('admin.products.edit', compact('product', 'categories'));
     }
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'name' => 'required|max:255',
-            'price' => 'required|numeric',
-            'description' => 'nullable',
-            'category_id' => 'nullable|exists:categories,id'
-        ]);
+        $product = $this->productService->getProduct($id);
+        $validated = $this->productService->validateProduct($request->all(), $id);
+        $this->productService->updateProduct($product, $validated);
 
-        $product = Product::findOrFail($id);
-        $product->update($request->all());
-
-    return redirect()->route('admin.products.index')
+        return redirect()->route('admin.products.index')
              ->with('success', 'Product updated successfully');
     }
 
     public function destroy($id)
     {
-        Product::destroy($id);
+        $this->productService->deleteProduct($id);
 
-    return redirect()->route('admin.products.index')
+        return redirect()->route('admin.products.index')
              ->with('success', 'Product deleted successfully');
     }
 }

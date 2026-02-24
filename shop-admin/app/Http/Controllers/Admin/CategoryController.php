@@ -5,13 +5,26 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CategoryRequest;
 use App\Models\Category;
-use Illuminate\Support\Str;
+use App\Contracts\CategoryServiceInterface;
 
 class CategoryController extends Controller
 {
+    /**
+     * @var CategoryServiceInterface
+     */
+    private $categoryService;
+
+    /**
+     * Inject CategoryServiceInterface
+     */
+    public function __construct(CategoryServiceInterface $categoryService)
+    {
+        $this->categoryService = $categoryService;
+    }
+
     public function index()
     {
-        $categories = Category::latest()->paginate(15);
+        $categories = $this->categoryService->getAllCategories(15);
         return view('admin.categories.index', compact('categories'));
     }
 
@@ -23,47 +36,29 @@ class CategoryController extends Controller
     public function store(CategoryRequest $request)
     {
         $data = $request->only(['name', 'description']);
-
-        $data['slug'] = Str::slug($data['name']);
-        $original = $data['slug'];
-        $i = 1;
-        while (Category::where('slug', $data['slug'])->exists()) {
-            $data['slug'] = $original . '-' . $i++;
-        }
-
-        Category::create($data);
+        $this->categoryService->createCategory($data);
 
         return redirect()->route('admin.categories.index')->with('success', 'Category created successfully');
     }
 
     public function edit($id)
     {
-        $category = Category::findOrFail($id);
+        $category = $this->categoryService->getCategory($id);
         return view('admin.categories.edit', compact('category'));
     }
 
     public function update(CategoryRequest $request, $id)
     {
-        $category = Category::findOrFail($id);
-
+        $category = $this->categoryService->getCategory($id);
         $data = $request->only(['name', 'description']);
-
-        $data['slug'] = Str::slug($data['name']);
-        $original = $data['slug'];
-        $i = 1;
-        while (Category::where('slug', $data['slug'])->where('id', '!=', $category->id)->exists()) {
-            $data['slug'] = $original . '-' . $i++;
-        }
-
-        $category->update($data);
+        $this->categoryService->updateCategory($category, $data);
 
         return redirect()->route('admin.categories.index')->with('success', 'Category updated successfully');
     }
 
     public function destroy($id)
     {
-        $category = Category::findOrFail($id);
-        $category->delete();
+        $this->categoryService->deleteCategory($id);
         return redirect()->route('admin.categories.index')->with('success', 'Category deleted successfully');
     }
 }
