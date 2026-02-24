@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ProductRequest;
 use App\Models\Product;
 use App\Contracts\ProductServiceInterface;
+use App\Contracts\FileUploadServiceInterface;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -16,14 +17,23 @@ class ProductController extends Controller
     private $productService;
 
     /**
-     * Inject ProductServiceInterface
+     * @var FileUploadServiceInterface
      */
-    public function __construct(ProductServiceInterface $productService)
+    private $fileUploadService;
+
+    /**
+     * Inject dependencies
+     *
+     * Dependencies: ProductServiceInterface, FileUploadServiceInterface
+     * Follows Dependency Inversion - depends on abstractions not concretions
+     */
+    public function __construct(ProductServiceInterface $productService, FileUploadServiceInterface $fileUploadService)
     {
         $this->productService = $productService;
+        $this->fileUploadService = $fileUploadService;
     }
 
-    public function index(\Illuminate\Http\Request $request)
+    public function index(Request $request)
     {
         $perPage = 10;
         $products = $this->productService->getAllProducts($request, $perPage);
@@ -38,14 +48,14 @@ class ProductController extends Controller
         return view('admin.products.create', compact('categories'));
     }
 
-    public function store(Request $request)
+    public function store(ProductRequest $request)
     {
-        $data = $this->productService->validateProduct($request->all());
+        $data = $request->validated();
 
-        // Handle image upload
+        // Handle image upload - delegated to FileUploadService
+        // Single Responsibility: controller doesn't handle file operations
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            $data['image'] = $path;
+            $data['image'] = $this->fileUploadService->uploadProductImage($request->file('image'));
         }
 
         $this->productService->createProduct($data);
@@ -61,15 +71,15 @@ class ProductController extends Controller
         return view('admin.products.edit', compact('product', 'categories'));
     }
 
-    public function update(Request $request, $id)
+    public function update(ProductRequest $request, $id)
     {
         $product = $this->productService->getProduct($id);
-        $data = $this->productService->validateProduct($request->all(), $id);
+        $data = $request->validated();
 
-        // Handle image upload
+        // Handle image upload - delegated to FileUploadService
+        // Single Responsibility: controller doesn't handle file operations
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            $data['image'] = $path;
+            $data['image'] = $this->fileUploadService->replaceFile($product->image, $request->file('image'));
         }
 
         $this->productService->updateProduct($product, $data);

@@ -30,7 +30,7 @@
                         <div class="flex-1">
                             <h1 class="text-3xl font-bold text-gray-800">{{ $user->name }}</h1>
                             <p class="text-gray-600 mt-1">{{ $user->email }}</p>
-                            <p class="text-sm text-gray-500 mt-2">{{ ucfirst($user->role) }} Account</p>
+                            <p class="text-sm text-gray-500 mt-2">{{ $user->role->label() }} Account</p>
                         </div>
                     </div>
 

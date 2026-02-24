@@ -26,7 +26,7 @@
                     <h1 class="text-3xl font-bold text-gray-800">{{ $user->name }}</h1>
                     <p class="text-gray-600 mt-1">{{ $user->email }}</p>
                     <p class="text-sm text-gray-500 mt-2">
-                        <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">{{ ucfirst($user->role) }}</span>
+                        <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">{{ $user->role->label() }}</span>
                     </p>
                 </div>
             </div>

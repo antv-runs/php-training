@@ -49,7 +49,7 @@
                         <option value="email" {{ ($filters['sort_by'] ?? 'id') === 'email' ? 'selected' : '' }}>Email</option>
                         <option value="role" {{ ($filters['sort_by'] ?? 'id') === 'role' ? 'selected' : '' }}>Role</option>
                         <option value="created_at" {{ ($filters['sort_by'] ?? 'id') === 'created_at' ? 'selected' : '' }}>Date Created</option>
-                        @if(($filters['status'] ?? 'active') === 'deleted')
+                        @if(($filters['status'] ?? \App\Enums\ItemStatus::ACTIVE->value) === \App\Enums\ItemStatus::DELETED->value)
                             <option value="deleted_at" {{ ($filters['sort_by'] ?? 'id') === 'deleted_at' ? 'selected' : '' }}>Deleted Date</option>
                         @endif
                     </select>
@@ -97,8 +97,8 @@
                         <td class="px-4 py-2">{{ $user->name }}</td>
                         <td class="px-4 py-2">{{ $user->email }}</td>
                         <td class="px-4 py-2">
-                            <span class="px-2 py-1 text-xs rounded {{ $user->role === 'admin' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800' }}">
-                                {{ ucfirst($user->role) }}
+                            <span class="px-2 py-1 text-xs rounded {{ $user->role->value === 'admin' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800' }}">
+                                {{ $user->role->label() }}
                             </span>
                         </td>
                         <td class="px-4 py-2">

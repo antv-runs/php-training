@@ -37,11 +37,6 @@ interface ProductServiceInterface
     public function deleteProduct($id);
 
     /**
-     * Validate product data
-     */
-    public function validateProduct(array $data, $id = null);
-
-    /**
      * Get trashed products
      */
     public function getTrashed($perPage = 10);

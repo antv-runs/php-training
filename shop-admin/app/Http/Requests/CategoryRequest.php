@@ -4,11 +4,17 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Category form request validation
+ * 
+ * Single Responsibility: validates category data only
+ * Centralizes validation logic, keeps controllers lean
+ */
 class CategoryRequest extends FormRequest
 {
     public function authorize()
     {
-        return true;
+        return auth()->check() && auth()->user()->isAdmin();
     }
 
     public function rules()

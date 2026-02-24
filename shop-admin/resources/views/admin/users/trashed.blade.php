@@ -51,8 +51,8 @@
                         <td class="px-4 py-2">{{ $user->name }}</td>
                         <td class="px-4 py-2">{{ $user->email }}</td>
                         <td class="px-4 py-2">
-                            <span class="px-2 py-1 text-xs rounded {{ $user->role === 'admin' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800' }}">
-                                {{ ucfirst($user->role) }}
+                            <span class="px-2 py-1 text-xs rounded {{ $user->role->value === 'admin' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800' }}">
+                                {{ $user->role->label() }}
                             </span>
                         </td>
                         <td class="px-4 py-2 text-sm text-gray-600">{{ $user->deleted_at?->format('M d, Y H:i') }}</td>
