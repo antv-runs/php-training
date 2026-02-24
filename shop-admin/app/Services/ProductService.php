@@ -5,15 +5,50 @@ namespace App\Services;
 use App\Contracts\ProductServiceInterface;
 use App\Models\Product;
 use App\Models\Category;
+use Illuminate\Support\Facades\Storage;
 
 class ProductService implements ProductServiceInterface
 {
     /**
      * Get all products with category
      */
-    public function getAllProducts($perPage = 10)
+    public function getAllProducts(\Illuminate\Http\Request $request, $perPage = 10)
     {
-        return Product::with('category')->latest()->paginate($perPage);
+        $perPage = (int)$request->input('per_page', $perPage);
+
+        // Query builder base on status
+        $status = $request->input('status', 'active');
+
+        if ($status === 'deleted') {
+            $query = Product::onlyTrashed()->with('category');
+        } elseif ($status === 'all') {
+            $query = Product::withTrashed()->with('category');
+        } else {
+            $query = Product::with('category');
+        }
+
+        // Search by name
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        // Filter by category
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->input('category_id'));
+        }
+
+        // Sort
+        $sortBy = $request->input('sort_by', 'id');
+        $sortOrder = $request->input('sort_order', 'desc');
+
+        if (in_array($sortBy, ['id', 'name', 'price', 'created_at'])) {
+            $query->orderBy($sortBy, $sortOrder);
+        } else {
+            $query->latest();
+        }
+
+        return $query->paginate($perPage);
     }
 
     /**
@@ -45,6 +80,15 @@ class ProductService implements ProductServiceInterface
      */
     public function updateProduct(Product $product, array $data)
     {
+        // If a new image is provided, remove old image first
+        if (!empty($data['image']) && $product->image) {
+            try {
+                Storage::disk('public')->delete($product->image);
+            } catch (\Throwable $e) {
+                // ignore deletion errors
+            }
+        }
+
         $product->update($data);
         return $product;
     }
@@ -68,6 +112,7 @@ class ProductService implements ProductServiceInterface
             'name' => 'required|max:255',
             'price' => 'required|numeric',
             'description' => 'nullable',
+            'image' => 'nullable|image|max:2048',
             'category_id' => 'nullable|exists:categories,id'
         ];
 
@@ -111,6 +156,15 @@ class ProductService implements ProductServiceInterface
     public function forceDeleteProduct($id)
     {
         $product = Product::withTrashed()->findOrFail($id);
+        // delete image file if exists
+        if ($product->image) {
+            try {
+                Storage::disk('public')->delete($product->image);
+            } catch (\Throwable $e) {
+                // ignore
+            }
+        }
+
         $product->forceDelete();
 
         return [

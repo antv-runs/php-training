@@ -9,7 +9,7 @@ interface CategoryServiceInterface
     /**
      * Get all categories
      */
-    public function getAllCategories($perPage = 15);
+    public function getAllCategories(\Illuminate\Http\Request $request, $perPage = 15);
 
     /**
      * Get category by ID

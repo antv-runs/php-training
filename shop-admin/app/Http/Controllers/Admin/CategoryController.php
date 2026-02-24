@@ -22,9 +22,10 @@ class CategoryController extends Controller
         $this->categoryService = $categoryService;
     }
 
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
-        $categories = $this->categoryService->getAllCategories(15);
+        $perPage = 15;
+        $categories = $this->categoryService->getAllCategories($request, $perPage);
         return view('admin.categories.index', compact('categories'));
     }
 

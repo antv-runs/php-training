@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Contracts\ProductServiceInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -22,10 +23,13 @@ class ProductController extends Controller
         $this->productService = $productService;
     }
 
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
-        $products = $this->productService->getAllProducts(10);
-        return view('admin.products.index', compact('products'));
+        $perPage = 10;
+        $products = $this->productService->getAllProducts($request, $perPage);
+        $categories = $this->productService->getCategories();
+
+        return view('admin.products.index', compact('products', 'categories'));
     }
 
     public function create()
@@ -36,8 +40,15 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $this->productService->validateProduct($request->all());
-        $this->productService->createProduct($validated);
+        $data = $this->productService->validateProduct($request->all());
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('products', 'public');
+            $data['image'] = $path;
+        }
+
+        $this->productService->createProduct($data);
 
         return redirect()->route('admin.products.index')
              ->with('success', 'Product created successfully');
@@ -53,8 +64,15 @@ class ProductController extends Controller
     public function update(Request $request, $id)
     {
         $product = $this->productService->getProduct($id);
-        $validated = $this->productService->validateProduct($request->all(), $id);
-        $this->productService->updateProduct($product, $validated);
+        $data = $this->productService->validateProduct($request->all(), $id);
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('products', 'public');
+            $data['image'] = $path;
+        }
+
+        $this->productService->updateProduct($product, $data);
 
         return redirect()->route('admin.products.index')
              ->with('success', 'Product updated successfully');

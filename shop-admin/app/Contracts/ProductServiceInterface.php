@@ -9,7 +9,7 @@ interface ProductServiceInterface
     /**
      * Get all products with category
      */
-    public function getAllProducts($perPage = 10);
+    public function getAllProducts(\Illuminate\Http\Request $request, $perPage = 10);
 
     /**
      * Get all categories

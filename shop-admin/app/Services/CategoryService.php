@@ -11,9 +11,37 @@ class CategoryService implements CategoryServiceInterface
     /**
      * Get all categories
      */
-    public function getAllCategories($perPage = 15)
+    public function getAllCategories(\Illuminate\Http\Request $request, $perPage = 15)
     {
-        return Category::latest()->paginate($perPage);
+        $perPage = (int)$request->input('per_page', $perPage);
+
+        $status = $request->input('status', 'active');
+
+        if ($status === 'deleted') {
+            $query = Category::onlyTrashed();
+        } elseif ($status === 'all') {
+            $query = Category::withTrashed();
+        } else {
+            $query = Category::query();
+        }
+
+        // Search by name
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        // Sort
+        $sortBy = $request->input('sort_by', 'id');
+        $sortOrder = $request->input('sort_order', 'desc');
+
+        if (in_array($sortBy, ['id', 'name', 'created_at'])) {
+            $query->orderBy($sortBy, $sortOrder);
+        } else {
+            $query->latest();
+        }
+
+        return $query->paginate($perPage);
     }
 
     /**

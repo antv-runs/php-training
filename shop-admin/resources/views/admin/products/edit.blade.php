@@ -6,7 +6,7 @@
     <div class="bg-white p-6 rounded shadow">
         <h2 class="text-lg font-semibold">Edit Product</h2>
 
-        <form action="{{ route('admin.products.update', $product->id) }}" method="POST" class="mt-4 space-y-4">
+        <form action="{{ route('admin.products.update', $product->id) }}" method="POST" enctype="multipart/form-data" class="mt-4 space-y-4">
             @csrf
             @method('PUT')
 
@@ -38,6 +38,17 @@
             <div>
                 <label class="block font-medium">Description:</label>
                 <textarea name="description" class="mt-1 block w-full border rounded px-3 py-2">{{ old('description', $product->description) }}</textarea>
+            </div>
+
+            <div>
+                <label class="block font-medium">Image (one):</label>
+                @if($product->image)
+                    <div class="mb-2">
+                        <img src="{{ asset('storage/' . $product->image) }}" alt="Product Image" class="h-24 w-auto object-cover">
+                    </div>
+                @endif
+                <input type="file" name="image" accept="image/*" class="mt-1 block w-full">
+                @error('image') <p class="text-red-600">{{ $message }}</p> @enderror
             </div>
 
             <div class="flex items-center gap-3">

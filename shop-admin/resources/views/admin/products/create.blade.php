@@ -6,8 +6,14 @@
     <div class="bg-white p-6 rounded shadow">
         <h2 class="text-lg font-semibold">Add Product</h2>
 
-        <form action="{{ route('admin.products.store') }}" method="POST" class="mt-4 space-y-4">
+        <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data" class="mt-4 space-y-4">
             @csrf
+
+            <div>
+                <label class="block font-medium">Image (one):</label>
+                <input type="file" name="image" accept="image/*" class="mt-1 block w-full">
+                @error('image') <p class="text-red-600">{{ $message }}</p> @enderror
+            </div>
 
             <div>
                 <label class="block font-medium">Name:</label>
