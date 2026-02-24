@@ -14,9 +14,9 @@
     <form method="GET" action="{{ route('admin.products.index') }}" class="flex gap-2 items-end">
         <input type="text" name="search" placeholder="Search name..." value="{{ request('search') }}" class="border rounded px-2 py-1 text-sm">
         <select name="status" class="border rounded px-2 py-1 text-sm">
-            <option value="active" {{ request('status', 'active') === 'active' ? 'selected' : '' }}>Active</option>
-            <option value="deleted" {{ request('status') === 'deleted' ? 'selected' : '' }}>Deleted</option>
-            <option value="all" {{ request('status') === 'all' ? 'selected' : '' }}>All</option>
+            <option value="{{ \App\Enums\ItemStatus::ACTIVE->value }}" {{ request('status', \App\Enums\ItemStatus::ACTIVE->value) === \App\Enums\ItemStatus::ACTIVE->value ? 'selected' : '' }}>Active</option>
+            <option value="{{ \App\Enums\ItemStatus::DELETED->value }}" {{ request('status') === \App\Enums\ItemStatus::DELETED->value ? 'selected' : '' }}>Deleted</option>
+            <option value="{{ \App\Enums\ItemStatus::ALL->value }}" {{ request('status') === \App\Enums\ItemStatus::ALL->value ? 'selected' : '' }}>All</option>
         </select>
         <select name="category_id" class="border rounded px-2 py-1 text-sm">
             <option value="">All Categories</option>
@@ -53,7 +53,7 @@
         <th class="px-4 py-2 text-left">Price</th>
         <th class="px-4 py-2 text-left">Category</th>
         <th class="px-4 py-2 text-left">Description</th>
-        @if(request('status') === 'deleted')
+        @if(request('status') === \App\Enums\ItemStatus::DELETED->value)
             <th class="px-4 py-2 text-left">Deleted At</th>
         @else
             <th class="px-4 py-2 text-left">Created</th>
@@ -78,7 +78,7 @@
         <td class="px-4 py-2">{{ number_format($product->price) }}</td>
         <td class="px-4 py-2">{{ $product->category?->name ?? 'No category' }}</td>
         <td class="px-4 py-2">{{ $product->description }}</td>
-        @if(request('status') === 'deleted')
+        @if(request('status') === \App\Enums\ItemStatus::DELETED->value)
             <td class="px-4 py-2 text-sm text-gray-600">{{ $product->deleted_at?->format('M d, Y H:i') }}</td>
         @else
             <td class="px-4 py-2 text-sm text-gray-600">{{ $product->created_at?->format('M d, Y') }}</td>

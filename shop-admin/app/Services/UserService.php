@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Contracts\UserServiceInterface;
 use App\Models\User;
+use App\Enums\UserRole;
+use App\Enums\ItemStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -15,12 +17,12 @@ class UserService implements UserServiceInterface
      */
     public function buildQuery(Request $request)
     {
-        $status = $request->input('status', 'active');
-        
+        $status = $request->input('status', ItemStatus::ACTIVE->value);
+
         // Query builder based on status
-        if ($status === 'deleted') {
+        if ($status === ItemStatus::DELETED->value) {
             $query = User::onlyTrashed();
-        } elseif ($status === 'all') {
+        } elseif ($status === ItemStatus::ALL->value) {
             $query = User::withTrashed();
         } else {
             $query = User::query();
@@ -85,7 +87,7 @@ class UserService implements UserServiceInterface
      */
     public function getRoles()
     {
-        return ['admin' => 'Admin', 'user' => 'User'];
+        return UserRole::options();
     }
 
     /**
@@ -103,7 +105,7 @@ class UserService implements UserServiceInterface
     public function updateUser(User $user, array $data)
     {
         // Prevent admin from removing their own admin role
-        if (Auth::id() === $user->id && ($data['role'] ?? $user->role) !== 'admin') {
+        if (Auth::id() === $user->id && ($data['role'] ?? $user->role) !== UserRole::ADMIN->value) {
             return [
                 'success' => false,
                 'message' => 'You cannot remove your own admin role.'
@@ -185,7 +187,7 @@ class UserService implements UserServiceInterface
     public function restoreUser($id)
     {
         $user = User::withTrashed()->findOrFail($id);
-        
+
         if (!$user->trashed()) {
             return [
                 'success' => false,

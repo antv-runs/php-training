@@ -37,7 +37,7 @@
                 <label class="block font-medium">Role</label>
                 <select name="role" class="mt-1 block w-full border rounded px-3 py-2">
                     @foreach($roles as $key => $label)
-                        <option value="{{ $key }}" {{ (old('role', $user->role) === $key) ? 'selected' : '' }}>{{ $label }}</option>
+                        <option value="{{ $key }}" {{ (old('role', optional($user->role)->value) === $key) ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
                 </select>
                 @error('role') <p class="text-red-600">{{ $message }}</p> @enderror

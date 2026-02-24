@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Contracts\ProductServiceInterface;
 use App\Models\Product;
 use App\Models\Category;
+use App\Enums\ItemStatus;
 use Illuminate\Support\Facades\Storage;
 
 class ProductService implements ProductServiceInterface
@@ -17,11 +18,11 @@ class ProductService implements ProductServiceInterface
         $perPage = (int)$request->input('per_page', $perPage);
 
         // Query builder base on status
-        $status = $request->input('status', 'active');
+        $status = $request->input('status', ItemStatus::ACTIVE->value);
 
-        if ($status === 'deleted') {
+        if ($status === ItemStatus::DELETED->value) {
             $query = Product::onlyTrashed()->with('category');
-        } elseif ($status === 'all') {
+        } elseif ($status === ItemStatus::ALL->value) {
             $query = Product::withTrashed()->with('category');
         } else {
             $query = Product::with('category');
@@ -133,7 +134,7 @@ class ProductService implements ProductServiceInterface
     public function restoreProduct($id)
     {
         $product = Product::withTrashed()->findOrFail($id);
-        
+
         if (!$product->trashed()) {
             return [
                 'success' => false,

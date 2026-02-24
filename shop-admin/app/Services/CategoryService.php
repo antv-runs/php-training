@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Contracts\CategoryServiceInterface;
 use App\Models\Category;
+use App\Enums\ItemStatus;
 use Illuminate\Support\Str;
 
 class CategoryService implements CategoryServiceInterface
@@ -15,11 +16,11 @@ class CategoryService implements CategoryServiceInterface
     {
         $perPage = (int)$request->input('per_page', $perPage);
 
-        $status = $request->input('status', 'active');
+        $status = $request->input('status', ItemStatus::ACTIVE->value);
 
-        if ($status === 'deleted') {
+        if ($status === ItemStatus::DELETED->value) {
             $query = Category::onlyTrashed();
-        } elseif ($status === 'all') {
+        } elseif ($status === ItemStatus::ALL->value) {
             $query = Category::withTrashed();
         } else {
             $query = Category::query();

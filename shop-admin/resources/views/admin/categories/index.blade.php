@@ -17,9 +17,9 @@
         <form method="GET" action="{{ route('admin.categories.index') }}" class="flex gap-2 items-end">
             <input type="text" name="search" placeholder="Search name..." value="{{ request('search') }}" class="border rounded px-2 py-1 text-sm">
             <select name="status" class="border rounded px-2 py-1 text-sm">
-                <option value="active" {{ request('status', 'active') === 'active' ? 'selected' : '' }}>Active</option>
-                <option value="deleted" {{ request('status') === 'deleted' ? 'selected' : '' }}>Deleted</option>
-                <option value="all" {{ request('status') === 'all' ? 'selected' : '' }}>All</option>
+                <option value="{{ \App\Enums\ItemStatus::ACTIVE->value }}" {{ request('status', \App\Enums\ItemStatus::ACTIVE->value) === \App\Enums\ItemStatus::ACTIVE->value ? 'selected' : '' }}>Active</option>
+                <option value="{{ \App\Enums\ItemStatus::DELETED->value }}" {{ request('status') === \App\Enums\ItemStatus::DELETED->value ? 'selected' : '' }}>Deleted</option>
+                <option value="{{ \App\Enums\ItemStatus::ALL->value }}" {{ request('status') === \App\Enums\ItemStatus::ALL->value ? 'selected' : '' }}>All</option>
             </select>
             <select name="sort_by" class="border rounded px-2 py-1 text-sm">
                 <option value="id" {{ request('sort_by') === 'id' ? 'selected' : '' }}>ID</option>
@@ -47,7 +47,7 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Slug</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                    @if(request('status') === 'deleted')
+                    @if(request('status') === \App\Enums\ItemStatus::DELETED->value)
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Deleted At</th>
                     @else
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
@@ -61,7 +61,7 @@
                     <td class="px-6 py-4 whitespace-nowrap">{{ $category->name }}</td>
                     <td class="px-6 py-4 whitespace-nowrap">{{ $category->slug }}</td>
                     <td class="px-6 py-4 text-sm text-gray-500">{{ Str::limit($category->description, 80) }}</td>
-                    @if(request('status') === 'deleted')
+                    @if(request('status') === \App\Enums\ItemStatus::DELETED->value)
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $category->deleted_at?->format('M d, Y H:i') }}</td>
                     @else
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $category->created_at?->format('M d, Y') }}</td>

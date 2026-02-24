@@ -23,9 +23,9 @@
                 <div>
                     <label class="block text-sm font-medium mb-1">Status</label>
                     <select name="status" class="w-full border rounded px-3 py-2 text-sm">
-                        <option value="active" {{ ($filters['status'] ?? 'active') === 'active' ? 'selected' : '' }}>Active</option>
-                        <option value="deleted" {{ ($filters['status'] ?? 'active') === 'deleted' ? 'selected' : '' }}>Deleted (Disabled)</option>
-                        <option value="all" {{ ($filters['status'] ?? 'active') === 'all' ? 'selected' : '' }}>All</option>
+                        <option value="{{ \App\Enums\ItemStatus::ACTIVE->value }}" {{ ($filters['status'] ?? \App\Enums\ItemStatus::ACTIVE->value) === \App\Enums\ItemStatus::ACTIVE->value ? 'selected' : '' }}>Active</option>
+                        <option value="{{ \App\Enums\ItemStatus::DELETED->value }}" {{ ($filters['status'] ?? \App\Enums\ItemStatus::ACTIVE->value) === \App\Enums\ItemStatus::DELETED->value ? 'selected' : '' }}>Deleted (Disabled)</option>
+                        <option value="{{ \App\Enums\ItemStatus::ALL->value }}" {{ ($filters['status'] ?? \App\Enums\ItemStatus::ACTIVE->value) === \App\Enums\ItemStatus::ALL->value ? 'selected' : '' }}>All</option>
                     </select>
                 </div>
 
