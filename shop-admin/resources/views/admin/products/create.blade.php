@@ -16,6 +16,19 @@
             </div>
 
             <div>
+                <label class="block font-medium">Category:</label>
+                <select name="category_id" class="mt-1 block w-full border rounded px-3 py-2">
+                    <option value="">-- Select Category --</option>
+                    @foreach($categories as $category)
+                        <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                            {{ $category->name }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('category_id') <p class="text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
                 <label class="block font-medium">Price:</label>
                 <input type="text" name="price" value="{{ old('price') }}" class="mt-1 block w-full border rounded px-3 py-2">
                 @error('price') <p class="text-red-600">{{ $message }}</p> @enderror

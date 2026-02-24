@@ -20,6 +20,7 @@
                                     <thead>
                                         <tr>
                                             <th class="px-4 py-2 text-left">Name</th>
+                                            <th class="px-4 py-2 text-left">Category</th>
                                             <th class="px-4 py-2 text-left">Price</th>
                                             <th class="px-4 py-2 text-left">Description</th>
                                         </tr>
@@ -28,6 +29,7 @@
                                         @foreach($products as $product)
                                             <tr class="border-t">
                                                 <td class="px-4 py-2">{{ $product->name }}</td>
+                                                <td class="px-4 py-2">{{ $product->category?->name ?? 'No category' }}</td>
                                                 <td class="px-4 py-2">{{ number_format($product->price) }}</td>
                                                 <td class="px-4 py-2">{{ $product->description }}</td>
                                             </tr>

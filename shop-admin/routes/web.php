@@ -32,7 +32,7 @@ use App\Models\Product;
 
 Route::get('/dashboard', function () {
     // show product list to regular users (read-only)
-    $products = Product::latest()->paginate(10);
+    $products = Product::with('category')->latest()->paginate(10);
     return view('dashboard', compact('products'));
 })->middleware(['auth'])->name('dashboard');
 

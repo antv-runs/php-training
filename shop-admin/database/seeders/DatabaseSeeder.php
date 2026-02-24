@@ -25,24 +25,18 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // Create user 1
-        if (!User::where('email', 'user1@example.com')->exists()) {
-            User::create([
-                'name' => 'User One',
-                'email' => 'user1@example.com',
-                'password' => Hash::make('password'),
-                'role' => 'user',
-            ]);
-        }
+        // Create 20 normal users
+        for ($i = 1; $i <= 20; $i++) {
+            $email = "user{$i}@example.com";
 
-        // Create user 2
-        if (!User::where('email', 'user2@example.com')->exists()) {
-            User::create([
-                'name' => 'User Two',
-                'email' => 'user2@example.com',
-                'password' => Hash::make('password'),
-                'role' => 'user',
-            ]);
+            if (!User::where('email', $email)->exists()) {
+                User::create([
+                    'name' => "User {$i}",
+                    'email' => $email,
+                    'password' => Hash::make('password'),
+                    'role' => 'user',
+                ]);
+            }
         }
     }
 }
