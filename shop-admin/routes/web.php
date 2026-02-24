@@ -36,11 +36,26 @@ Route::get('/dashboard', function () {
     return view('dashboard', compact('products'));
 })->middleware(['auth'])->name('dashboard');
 
+// User Profile routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/edit', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile/image', [\App\Http\Controllers\ProfileController::class, 'deleteImage'])->name('profile.deleteImage');
+});
+
 // Admin routes
 use App\Http\Controllers\Admin\AdminController;
 
 Route::prefix('admin')->middleware(['auth','is_admin'])->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
+
+    // Admin Profile routes
+    Route::get('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'show'])->name('admin.profile.show');
+    Route::get('/profile/edit', [\App\Http\Controllers\Admin\ProfileController::class, 'edit'])->name('admin.profile.edit');
+    Route::patch('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('admin.profile.update');
+    Route::delete('/profile/image', [\App\Http\Controllers\Admin\ProfileController::class, 'deleteImage'])->name('admin.profile.deleteImage');
+
     // Admin resource routes
     Route::resource('products', \App\Http\Controllers\Admin\ProductController::class, ['as' => 'admin']);
     Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class, ['as' => 'admin']);
