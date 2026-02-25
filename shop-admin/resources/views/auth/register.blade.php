@@ -1,59 +1,107 @@
 <x-guest-layout>
-    <x-auth-card>
-        <x-slot name="logo">
-            <a href="/">
-                <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
-            </a>
-        </x-slot>
+<section class="min-h-screen flex items-center justify-center px-6 py-8">
 
-        <!-- Validation Errors -->
-        <x-auth-validation-errors class="mb-4" :errors="$errors" />
+    <div class="w-full max-w-md bg-white rounded-lg shadow dark:bg-gray-800 dark:border dark:border-gray-700">
 
-        <form method="POST" action="{{ route('register') }}">
-            @csrf
+        <div class="p-6 space-y-6 sm:p-8">
 
-            <!-- Name -->
-            <div>
-                <x-label for="name" :value="__('Name')" />
+            <h1 class="text-xl font-bold text-gray-900 md:text-2xl dark:text-white text-center">
+                Create an account
+            </h1>
 
-                <x-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus />
-            </div>
+            <!-- Validation Errors -->
+            <x-auth-validation-errors
+                class="text-sm text-red-600 dark:text-red-400"
+                :errors="$errors"
+            />
 
-            <!-- Email Address -->
-            <div class="mt-4">
-                <x-label for="email" :value="__('Email')" />
+            <form method="POST" action="{{ route('register') }}" class="space-y-4">
+                @csrf
 
-                <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required />
-            </div>
+                <!-- Name -->
+                <div>
+                    <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        Full Name
+                    </label>
+                    <input
+                        type="text"
+                        name="name"
+                        id="name"
+                        value="{{ old('name') }}"
+                        required
+                        autofocus
+                        class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5
+                               dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        placeholder="John Doe"
+                    >
+                </div>
 
-            <!-- Password -->
-            <div class="mt-4">
-                <x-label for="password" :value="__('Password')" />
+                <!-- Email -->
+                <div>
+                    <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        Email
+                    </label>
+                    <input
+                        type="email"
+                        name="email"
+                        id="email"
+                        value="{{ old('email') }}"
+                        required
+                        class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5
+                               dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        placeholder="name@company.com"
+                    >
+                </div>
 
-                <x-input id="password" class="block mt-1 w-full"
-                                type="password"
-                                name="password"
-                                required autocomplete="new-password" />
-            </div>
+                <!-- Password -->
+                <div>
+                    <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        Password
+                    </label>
+                    <input
+                        type="password"
+                        name="password"
+                        id="password"
+                        required
+                        autocomplete="new-password"
+                        class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5
+                               dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        placeholder="••••••••"
+                    >
+                </div>
 
-            <!-- Confirm Password -->
-            <div class="mt-4">
-                <x-label for="password_confirmation" :value="__('Confirm Password')" />
+                <!-- Confirm Password -->
+                <div>
+                    <label for="password_confirmation" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        Confirm Password
+                    </label>
+                    <input
+                        type="password"
+                        name="password_confirmation"
+                        id="password_confirmation"
+                        required
+                        class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5
+                               dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        placeholder="••••••••"
+                    >
+                </div>
 
-                <x-input id="password_confirmation" class="block mt-1 w-full"
-                                type="password"
-                                name="password_confirmation" required />
-            </div>
+                <div class="flex items-center justify-between">
+                    <a href="{{ route('login') }}"
+                       class="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400">
+                        Already registered?
+                    </a>
 
-            <div class="flex items-center justify-end mt-4">
-                <a class="underline text-sm text-gray-600 hover:text-gray-900" href="{{ route('login') }}">
-                    {{ __('Already registered?') }}
-                </a>
+                    <button
+                        type="submit"
+                        class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300
+                               font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                        Register
+                    </button>
+                </div>
 
-                <x-button class="ml-4">
-                    {{ __('Register') }}
-                </x-button>
-            </div>
-        </form>
-    </x-auth-card>
+            </form>
+        </div>
+    </div>
+</section>
 </x-guest-layout>
