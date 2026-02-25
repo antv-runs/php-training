@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\ProfileController;
 
 /*
@@ -21,8 +22,8 @@ use App\Http\Controllers\ProfileController;
 */
 
 // Public routes
-Route::post('/auth/register', [\App\Http\Controllers\Auth\RegisteredUserController::class, 'store']);
-Route::post('/auth/login', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'store']);
+Route::post('/auth/register', [AuthController::class, 'register']);
+Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/forgot-password', [\App\Http\Controllers\Auth\PasswordResetLinkController::class, 'store']);
 Route::post('/auth/reset-password', [\App\Http\Controllers\Auth\NewPasswordController::class, 'store']);
 
@@ -41,7 +42,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/confirm-password', [\App\Http\Controllers\Auth\ConfirmablePasswordController::class, 'store']);
 
     // User info
-    Route::get('/user', function (Request $request) {
+    Route::get('/auth/me', function (Request $request) {
         return $request->user();
     });
 
@@ -58,7 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/users/{id}', [UserController::class, 'show']);
         Route::patch('/users/{id}', [UserController::class, 'update']);
         Route::delete('/users/{id}', [UserController::class, 'destroy']);
-        
+
         // Soft delete for users
         Route::get('/users/trashed', [UserController::class, 'trashed']);
         Route::patch('/users/{id}/restore', [UserController::class, 'restore']);
@@ -68,7 +69,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/products', [ProductController::class, 'store']);
         Route::patch('/products/{id}', [ProductController::class, 'update']);
         Route::delete('/products/{id}', [ProductController::class, 'destroy']);
-        
+
         // Soft delete for products
         Route::get('/products/trashed', [ProductController::class, 'trashed']);
         Route::patch('/products/{id}/restore', [ProductController::class, 'restore']);
@@ -78,7 +79,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/categories', [CategoryController::class, 'store']);
         Route::patch('/categories/{id}', [CategoryController::class, 'update']);
         Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
-        
+
         // Soft delete for categories
         Route::get('/categories/trashed', [CategoryController::class, 'trashed']);
         Route::patch('/categories/{id}/restore', [CategoryController::class, 'restore']);
