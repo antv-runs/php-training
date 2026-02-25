@@ -23,52 +23,52 @@ class UserController extends Controller
         $this->userService = $userService;
     }
 
+    /**
+     * Get list of users with pagination.
+     * Returns JSON response.
+     */
     public function index(Request $request)
     {
         $data = $this->userService->getListData($request);
-        $roles = $this->userService->getRoles();
-
-        // Return JSON if requested (API compatibility)
-        if ($request->wantsJson() || $request->query('api')) {
-            return response()->json($data);
-        }
-
-        // Return view for web
-        return view('admin.users.index', [
-            'users' => $data['data'],
-            'pagination' => $data['pagination'],
-            'filters' => $data['filters'],
-            'roles' => $roles,
-            'paginator' => $data['paginator']
-        ]);
+        return response()->json($data);
     }
 
-    public function create()
-    {
-        $roles = $this->userService->getRoles();
-        return view('admin.users.create', compact('roles'));
-    }
-
+    /**
+     * Store a newly created user.
+     * Returns JSON response.
+     */
     public function store(UserRequest $request)
     {
         $data = $request->validated();
+        $result = $this->userService->createUser($data);
 
-        $this->userService->createUser($data);
-
-        if ($request->wantsJson()) {
-            return response()->json(['message' => 'User created successfully'], 201);
+        if (!($result['success'] ?? true)) {
+            return response()->json(['message' => $result['message']], 400);
         }
 
-        return redirect()->route('admin.users.index')->with('success', 'User created successfully');
+        return response()->json([
+            'message' => 'User created successfully',
+            'data' => $result['data'] ?? null
+        ], 201);
     }
 
-    public function edit($id)
+    /**
+     * Get a specific user by ID.
+     * Returns JSON response.
+     */
+    public function show($id)
     {
         $user = User::findOrFail($id);
-        $roles = $this->userService->getRoles();
-        return view('admin.users.edit', compact('user', 'roles'));
+        return response()->json([
+            'message' => 'User retrieved successfully',
+            'data' => $user
+        ]);
     }
 
+    /**
+     * Update a specific user.
+     * Returns JSON response.
+     */
     public function update(UserRequest $request, $id)
     {
         $user = User::findOrFail($id);
@@ -77,92 +77,68 @@ class UserController extends Controller
         $result = $this->userService->updateUser($user, $data);
 
         if (!$result['success']) {
-            if ($request->wantsJson()) {
-                return response()->json(['message' => $result['message']], 403);
-            }
-            return redirect()->route('admin.users.index')->with('error', $result['message']);
+            return response()->json(['message' => $result['message']], 403);
         }
 
-        if ($request->wantsJson()) {
-            return response()->json(['message' => $result['message'], 'data' => $result['data']]);
-        }
-
-        return redirect()->route('admin.users.index')->with('success', $result['message']);
-    }
-
-    public function destroy($id, Request $request)
-    {
-        $user = User::findOrFail($id);
-
-        $result = $this->userService->deleteUser($user);
-
-        if (!$result['success']) {
-            if ($request->wantsJson()) {
-                return response()->json(['message' => $result['message']], 403);
-            }
-            return redirect()->route('admin.users.index')->with('error', $result['message']);
-        }
-
-        if ($request->wantsJson()) {
-            return response()->json(['message' => $result['message']]);
-        }
-
-        return redirect()->route('admin.users.index')->with('success', $result['message']);
-    }
-
-    /**
-     * Show trashed users
-     */
-    public function trashed(Request $request)
-    {
-        $data = $this->userService->getTrashed($request);
-        $roles = $this->userService->getRoles();
-
-        if ($request->wantsJson()) {
-            return response()->json($data);
-        }
-
-        return view('admin.users.trashed', [
-            'users' => $data['data'],
-            'pagination' => $data['pagination'],
-            'paginator' => $data['paginator'],
-            'roles' => $roles
+        return response()->json([
+            'message' => $result['message'],
+            'data' => $result['data']
         ]);
     }
 
     /**
-     * Restore user
+     * Soft delete a user.
+     * Returns JSON response.
      */
-    public function restore($id, Request $request)
+    public function destroy($id)
+    {
+        $user = User::findOrFail($id);
+        $result = $this->userService->deleteUser($user);
+
+        if (!$result['success']) {
+            return response()->json(['message' => $result['message']], 403);
+        }
+
+        return response()->json(['message' => $result['message']]);
+    }
+
+    /**
+     * Get trashed (soft deleted) users.
+     * Returns JSON response.
+     */
+    public function trashed(Request $request)
+    {
+        $data = $this->userService->getTrashed($request);
+        return response()->json($data);
+    }
+
+    /**
+     * Restore a soft deleted user.
+     * Returns JSON response.
+     */
+    public function restore($id)
     {
         $result = $this->userService->restoreUser($id);
 
         if (!$result['success']) {
-            if ($request->wantsJson()) {
-                return response()->json(['message' => $result['message']], 400);
-            }
-            return redirect()->route('admin.users.trashed')->with('error', $result['message']);
+            return response()->json(['message' => $result['message']], 400);
         }
 
-        if ($request->wantsJson()) {
-            return response()->json(['message' => $result['message'], 'data' => $result['data']]);
-        }
-
-        return redirect()->route('admin.users.trashed')->with('success', $result['message']);
+        return response()->json([
+            'message' => $result['message'],
+            'data' => $result['data']
+        ]);
     }
 
     /**
-     * Force delete user
+     * Force delete a user permanently.
+     * Returns JSON response.
      */
-    public function forceDelete($id, Request $request)
+    public function forceDelete($id)
     {
         $result = $this->userService->forceDeleteUser($id);
 
-        if ($request->wantsJson()) {
-            return response()->json(['message' => $result['message']]);
-        }
-
-        return redirect()->route('admin.users.trashed')->with('success', $result['message']);
+        return response()->json(['message' => $result['message']]);
     }
 }
 

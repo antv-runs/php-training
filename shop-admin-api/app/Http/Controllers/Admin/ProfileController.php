@@ -27,7 +27,10 @@ class ProfileController extends Controller
     public function show()
     {
         $user = auth()->user();
-        return view('admin.profile.show', compact('user'));
+        return response()->json([
+            'user' => auth()->user(),
+            'timestamp' => now()
+        ]);
     }
 
     /**
@@ -36,7 +39,10 @@ class ProfileController extends Controller
     public function edit()
     {
         $user = auth()->user();
-        return view('admin.profile.edit', compact('user'));
+        return response()->json([
+            'message' => 'Edit profile',
+            'user' => $user
+        ]);
     }
 
     /**
@@ -60,7 +66,10 @@ class ProfileController extends Controller
 
         $result = $this->profileService->updateProfile($user, $validated);
 
-        return redirect()->route('admin.profile.show')->with('success', $result['message']);
+        return response()->json([
+            'message' => $result['message'],
+            'user' => $result['data'] ?? $user
+        ]);
     }
 
     /**
@@ -71,6 +80,9 @@ class ProfileController extends Controller
         $user = auth()->user();
         $result = $this->profileService->deleteProfileImage($user);
 
-        return back()->with('success', $result['message']);
+        return response()->json([
+            'message' => $result['message'],
+            'user' => $result['data'] ?? $user
+        ]);
     }
 }

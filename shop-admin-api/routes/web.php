@@ -11,68 +11,28 @@ use Illuminate\Support\Facades\Route;
 | routes are loaded by the RouteServiceProvider within a group which
 | contains the "web" middleware group. Now create something great!
 |
+| NOTE: This API is running in API-only mode. All endpoints return JSON.
+|       Use the /api routes for all business logic.
 */
 
+// Health check endpoint
+Route::get('/health', function () {
+    return response()->json(['status' => 'ok', 'message' => 'Server is running']);
+});
+
+// API Documentation/Info endpoint
 Route::get('/', function () {
-    // If user is authenticated, send them to the right dashboard.
-    if (auth()->check()) {
-        $user = auth()->user();
-        if (method_exists($user, 'isAdmin') && $user->isAdmin()) {
-            return redirect('/admin');
-        }
-
-        return redirect('/dashboard');
-    }
-
-    // Otherwise, redirect unauthenticated visitors to the login page
-    return redirect()->route('login');
+    return response()->json([
+        'name' => config('app.name'),
+        'version' => '1.0',
+        'message' => 'Welcome to Shop Admin API',
+        'api_routes' => [
+            'auth' => '/api/auth',
+            'users' => '/api/users',
+            'products' => '/api/products',
+            'categories' => '/api/categories',
+            'profile' => '/api/profile'
+        ],
+        'documentation' => 'See API documentation for more details'
+    ]);
 });
-
-use App\Models\Product;
-
-Route::get('/dashboard', function () {
-    // show product list to regular users (read-only)
-    $products = Product::with('category')->latest()->paginate(10);
-    return view('dashboard', compact('products'));
-})->middleware(['auth'])->name('dashboard');
-
-// User Profile routes
-Route::middleware(['auth'])->group(function () {
-    Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
-    Route::get('/profile/edit', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile/image', [\App\Http\Controllers\ProfileController::class, 'deleteImage'])->name('profile.deleteImage');
-});
-
-// Admin routes
-use App\Http\Controllers\Admin\AdminController;
-
-Route::prefix('admin')->middleware(['auth','is_admin'])->group(function () {
-    Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
-
-    // Admin Profile routes
-    Route::get('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'show'])->name('admin.profile.show');
-    Route::get('/profile/edit', [\App\Http\Controllers\Admin\ProfileController::class, 'edit'])->name('admin.profile.edit');
-    Route::patch('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('admin.profile.update');
-    Route::delete('/profile/image', [\App\Http\Controllers\Admin\ProfileController::class, 'deleteImage'])->name('admin.profile.deleteImage');
-
-    // Soft delete routes (MUST be before resource routes)
-    Route::get('/users/trashed', [\App\Http\Controllers\Admin\UserController::class, 'trashed'])->name('admin.users.trashed');
-    Route::patch('/users/{id}/restore', [\App\Http\Controllers\Admin\UserController::class, 'restore'])->name('admin.users.restore');
-    Route::delete('/users/{id}/force-delete', [\App\Http\Controllers\Admin\UserController::class, 'forceDelete'])->name('admin.users.forceDelete');
-
-    Route::get('/products/trashed', [\App\Http\Controllers\Admin\ProductController::class, 'trashed'])->name('admin.products.trashed');
-    Route::patch('/products/{id}/restore', [\App\Http\Controllers\Admin\ProductController::class, 'restore'])->name('admin.products.restore');
-    Route::delete('/products/{id}/force-delete', [\App\Http\Controllers\Admin\ProductController::class, 'forceDelete'])->name('admin.products.forceDelete');
-
-    Route::get('/categories/trashed', [\App\Http\Controllers\Admin\CategoryController::class, 'trashed'])->name('admin.categories.trashed');
-    Route::patch('/categories/{id}/restore', [\App\Http\Controllers\Admin\CategoryController::class, 'restore'])->name('admin.categories.restore');
-    Route::delete('/categories/{id}/force-delete', [\App\Http\Controllers\Admin\CategoryController::class, 'forceDelete'])->name('admin.categories.forceDelete');
-
-    // Admin resource routes
-    Route::resource('products', \App\Http\Controllers\Admin\ProductController::class, ['as' => 'admin']);
-    Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class, ['as' => 'admin']);
-    Route::resource('users', \App\Http\Controllers\Admin\UserController::class, ['as' => 'admin']);
-});
-
-require __DIR__.'/auth.php';

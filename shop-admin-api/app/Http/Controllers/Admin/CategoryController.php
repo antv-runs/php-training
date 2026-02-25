@@ -23,77 +23,115 @@ class CategoryController extends Controller
         $this->categoryService = $categoryService;
     }
 
-    public function index(\Illuminate\Http\Request $request)
+    /**
+     * Get all categories with pagination.
+     * Returns JSON response.
+     */
+    public function index(Request $request)
     {
         $perPage = 15;
         $categories = $this->categoryService->getAllCategories($request, $perPage);
-        return view('admin.categories.index', compact('categories'));
+        return response()->json([
+            'message' => 'Categories retrieved successfully',
+            'data' => $categories
+        ]);
     }
 
-    public function create()
-    {
-        return view('admin.categories.create');
-    }
-
+    /**
+     * Store a newly created category.
+     * Returns JSON response.
+     */
     public function store(CategoryRequest $request)
     {
         $data = $request->only(['name', 'description']);
-        $this->categoryService->createCategory($data);
+        $result = $this->categoryService->createCategory($data);
 
-        return redirect()->route('admin.categories.index')->with('success', 'Category created successfully');
+        return response()->json([
+            'message' => 'Category created successfully',
+            'data' => $result['data'] ?? null
+        ], 201);
     }
 
-    public function edit($id)
+    /**
+     * Get a specific category by ID.
+     * Returns JSON response.
+     */
+    public function show($id)
     {
         $category = $this->categoryService->getCategory($id);
-        return view('admin.categories.edit', compact('category'));
+        return response()->json([
+            'message' => 'Category retrieved successfully',
+            'data' => $category
+        ]);
     }
 
+    /**
+     * Update a specific category.
+     * Returns JSON response.
+     */
     public function update(CategoryRequest $request, $id)
     {
         $category = $this->categoryService->getCategory($id);
         $data = $request->only(['name', 'description']);
-        $this->categoryService->updateCategory($category, $data);
+        $result = $this->categoryService->updateCategory($category, $data);
 
-        return redirect()->route('admin.categories.index')->with('success', 'Category updated successfully');
+        return response()->json([
+            'message' => 'Category updated successfully',
+            'data' => $result['data'] ?? $category
+        ]);
     }
 
+    /**
+     * Soft delete a category.
+     * Returns JSON response.
+     */
     public function destroy($id)
     {
-        $this->categoryService->deleteCategory($id);
-        return redirect()->route('admin.categories.index')->with('success', 'Category deleted successfully');
+        $result = $this->categoryService->deleteCategory($id);
+        return response()->json([
+            'message' => 'Category deleted successfully'
+        ]);
     }
 
     /**
-     * Show trashed categories
+     * Get trashed (soft deleted) categories.
+     * Returns JSON response.
      */
-    public function trashed()
+    public function trashed(Request $request)
     {
         $categories = $this->categoryService->getTrashed(15);
-        return view('admin.categories.trashed', compact('categories'));
+        return response()->json([
+            'message' => 'Trashed categories retrieved successfully',
+            'data' => $categories
+        ]);
     }
 
     /**
-     * Restore category
+     * Restore a soft deleted category.
+     * Returns JSON response.
      */
     public function restore($id)
     {
         $result = $this->categoryService->restoreCategory($id);
 
         if (!$result['success']) {
-            return redirect()->route('admin.categories.trashed')->with('error', $result['message']);
+            return response()->json(['message' => $result['message']], 400);
         }
 
-        return redirect()->route('admin.categories.trashed')->with('success', $result['message']);
+        return response()->json([
+            'message' => $result['message'],
+            'data' => $result['data']
+        ]);
     }
 
     /**
-     * Force delete category
+     * Force delete a category permanently.
+     * Returns JSON response.
      */
     public function forceDelete($id)
     {
         $result = $this->categoryService->forceDeleteCategory($id);
 
-        return redirect()->route('admin.categories.trashed')->with('success', $result['message']);
+        return response()->json(['message' => $result['message']]);
     }
 }

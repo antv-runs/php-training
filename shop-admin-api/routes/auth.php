@@ -10,47 +10,48 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
+/*
+|--------------------------------------------------------------------------
+| API Authentication Routes
+|--------------------------------------------------------------------------
+|
+| All authentication routes return JSON responses for REST API clients.
+|
+*/
+
 Route::middleware('guest')->group(function () {
-    Route::get('register', [RegisteredUserController::class, 'create'])
-                ->name('register');
+    // User Registration
+    Route::post('api/auth/register', [RegisteredUserController::class, 'store'])
+                ->name('api.register');
 
-    Route::post('register', [RegisteredUserController::class, 'store']);
+    // User Login
+    Route::post('api/auth/login', [AuthenticatedSessionController::class, 'store'])
+                ->name('api.login');
 
-    Route::get('login', [AuthenticatedSessionController::class, 'create'])
-                ->name('login');
+    // Request Password Reset Link
+    Route::post('api/auth/forgot-password', [PasswordResetLinkController::class, 'store'])
+                ->name('api.password.email');
 
-    Route::post('login', [AuthenticatedSessionController::class, 'store']);
-
-    Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
-                ->name('password.request');
-
-    Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
-                ->name('password.email');
-
-    Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])
-                ->name('password.reset');
-
-    Route::post('reset-password', [NewPasswordController::class, 'store'])
-                ->name('password.update');
+    // Reset Password with Token
+    Route::post('api/auth/reset-password', [NewPasswordController::class, 'store'])
+                ->name('api.password.update');
 });
 
-Route::middleware('auth')->group(function () {
-    Route::get('verify-email', [EmailVerificationPromptController::class, '__invoke'])
-                ->name('verification.notice');
-
-    Route::get('verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke'])
-                ->middleware(['signed', 'throttle:6,1'])
-                ->name('verification.verify');
-
-    Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
+Route::middleware('auth:sanctum')->group(function () {
+    // Verify Email
+    Route::post('api/auth/email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
                 ->middleware('throttle:6,1')
-                ->name('verification.send');
+                ->name('api.verification.send');
 
-    Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])
-                ->name('password.confirm');
+    Route::post('api/auth/verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke'])
+                ->middleware(['signed', 'throttle:6,1'])
+                ->name('api.verification.verify');
 
-    Route::post('confirm-password', [ConfirmablePasswordController::class, 'store']);
+    // Confirm Password
+    Route::post('api/auth/confirm-password', [ConfirmablePasswordController::class, 'store'])
+                ->name('api.password.confirm');
 
-    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
-                ->name('logout');
+    // User Logout
+    Route::post('api/auth/logout', [AuthenticatedSessionController::class, 'destroy'])
+                ->name('api.logout');
 });

@@ -21,25 +21,21 @@ class ProfileController extends Controller
     }
 
     /**
-     * Show the user's profile.
+     * Get the authenticated user's profile.
+     * Returns JSON response.
      */
     public function show()
     {
         $user = auth()->user();
-        return view('profile.show', compact('user'));
-    }
-
-    /**
-     * Show the edit profile form.
-     */
-    public function edit()
-    {
-        $user = auth()->user();
-        return view('profile.edit', compact('user'));
+        return response()->json([
+            'message' => 'Profile retrieved successfully',
+            'user' => $user
+        ]);
     }
 
     /**
      * Update the user's profile information.
+     * Returns JSON response.
      */
     public function update(Request $request)
     {
@@ -59,17 +55,24 @@ class ProfileController extends Controller
 
         $result = $this->profileService->updateProfile($user, $validated);
 
-        return redirect()->route('profile.show')->with('success', $result['message']);
+        return response()->json([
+            'message' => $result['message'],
+            'user' => $result['data'] ?? $user
+        ]);
     }
 
     /**
      * Delete the user's profile image.
+     * Returns JSON response.
      */
     public function deleteImage()
     {
         $user = auth()->user();
         $result = $this->profileService->deleteProfileImage($user);
 
-        return back()->with('success', $result['message']);
+        return response()->json([
+            'message' => $result['message'],
+            'user' => $result['data'] ?? $user
+        ]);
     }
 }

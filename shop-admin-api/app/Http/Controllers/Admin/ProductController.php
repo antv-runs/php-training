@@ -33,99 +33,128 @@ class ProductController extends Controller
         $this->fileUploadService = $fileUploadService;
     }
 
+    /**
+     * Get all products with pagination.
+     * Returns JSON response.
+     */
     public function index(Request $request)
     {
         $perPage = 10;
         $products = $this->productService->getAllProducts($request, $perPage);
-        $categories = $this->productService->getCategories();
-
-        return view('admin.products.index', compact('products', 'categories'));
+        return response()->json([
+            'message' => 'Products retrieved successfully',
+            'data' => $products
+        ]);
     }
 
-    public function create()
-    {
-        $categories = $this->productService->getCategories();
-        return view('admin.products.create', compact('categories'));
-    }
-
+    /**
+     * Store a newly created product.
+     * Returns JSON response.
+     */
     public function store(ProductRequest $request)
     {
         $data = $request->validated();
 
         // Handle image upload - delegated to FileUploadService
-        // Single Responsibility: controller doesn't handle file operations
         if ($request->hasFile('image')) {
             $data['image'] = $this->fileUploadService->uploadProductImage($request->file('image'));
         }
 
-        $this->productService->createProduct($data);
+        $result = $this->productService->createProduct($data);
 
-        return redirect()->route('admin.products.index')
-             ->with('success', 'Product created successfully');
+        return response()->json([
+            'message' => 'Product created successfully',
+            'data' => $result['data'] ?? null
+        ], 201);
     }
 
-    public function edit($id)
+    /**
+     * Get a specific product by ID.
+     * Returns JSON response.
+     */
+    public function show($id)
     {
         $product = $this->productService->getProduct($id);
-        $categories = $this->productService->getCategories();
-        return view('admin.products.edit', compact('product', 'categories'));
+        return response()->json([
+            'message' => 'Product retrieved successfully',
+            'data' => $product
+        ]);
     }
 
+    /**
+     * Update a specific product.
+     * Returns JSON response.
+     */
     public function update(ProductRequest $request, $id)
     {
         $product = $this->productService->getProduct($id);
         $data = $request->validated();
 
         // Handle image upload - delegated to FileUploadService
-        // Single Responsibility: controller doesn't handle file operations
         if ($request->hasFile('image')) {
             $data['image'] = $this->fileUploadService->replaceFile($product->image, $request->file('image'));
         }
 
-        $this->productService->updateProduct($product, $data);
+        $result = $this->productService->updateProduct($product, $data);
 
-        return redirect()->route('admin.products.index')
-             ->with('success', 'Product updated successfully');
+        return response()->json([
+            'message' => 'Product updated successfully',
+            'data' => $result['data'] ?? $product
+        ]);
     }
 
+    /**
+     * Soft delete a product.
+     * Returns JSON response.
+     */
     public function destroy($id)
     {
-        $this->productService->deleteProduct($id);
+        $result = $this->productService->deleteProduct($id);
 
-        return redirect()->route('admin.products.index')
-             ->with('success', 'Product deleted successfully');
+        return response()->json([
+            'message' => 'Product deleted successfully'
+        ]);
     }
 
     /**
-     * Show trashed products
+     * Get trashed (soft deleted) products.
+     * Returns JSON response.
      */
-    public function trashed()
+    public function trashed(Request $request)
     {
         $products = $this->productService->getTrashed(10);
-        return view('admin.products.trashed', compact('products'));
+        return response()->json([
+            'message' => 'Trashed products retrieved successfully',
+            'data' => $products
+        ]);
     }
 
     /**
-     * Restore product
+     * Restore a soft deleted product.
+     * Returns JSON response.
      */
     public function restore($id)
     {
         $result = $this->productService->restoreProduct($id);
 
         if (!$result['success']) {
-            return redirect()->route('admin.products.trashed')->with('error', $result['message']);
+            return response()->json(['message' => $result['message']], 400);
         }
 
-        return redirect()->route('admin.products.trashed')->with('success', $result['message']);
+        return response()->json([
+            'message' => $result['message'],
+            'data' => $result['data']
+        ]);
     }
 
     /**
-     * Force delete product
+     * Force delete a product permanently.
+     * Returns JSON response.
      */
     public function forceDelete($id)
     {
         $result = $this->productService->forceDeleteProduct($id);
 
-        return redirect()->route('admin.products.trashed')->with('success', $result['message']);
+        return response()->json(['message' => $result['message']]);
     }
 }
