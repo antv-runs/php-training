@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
+use Illuminate\Support\Facades\Log;
 
 class Handler extends ExceptionHandler
 {
@@ -35,7 +36,13 @@ class Handler extends ExceptionHandler
     public function register()
     {
         $this->reportable(function (Throwable $e) {
-            //
+            try {
+                Log::error('Uncaught exception: '.get_class($e)." - " . $e->getMessage(), [
+                    'exception' => $e,
+                ]);
+            } catch (Throwable $ex) {
+                // avoid throwing inside logger
+            }
         });
     }
 }

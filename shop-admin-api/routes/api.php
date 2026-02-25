@@ -36,7 +36,7 @@ Route::get('/categories/{id}', [CategoryController::class, 'show']);
 // Protected routes (requires authentication)
 Route::middleware('auth:sanctum')->group(function () {
     // Auth endpoints
-    Route::post('/auth/logout', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'destroy']);
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::post('/auth/verify-email/{id}/{hash}', [\App\Http\Controllers\Auth\VerifyEmailController::class, '__invoke']);
     Route::post('/auth/email/verification-notification', [\App\Http\Controllers\Auth\EmailVerificationNotificationController::class, 'store']);
     Route::post('/auth/confirm-password', [\App\Http\Controllers\Auth\ConfirmablePasswordController::class, 'store']);
