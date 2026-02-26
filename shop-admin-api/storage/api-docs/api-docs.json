@@ -230,6 +230,53 @@
                         "description": "Success"
                     }
                 }
+            },
+            "post": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Create new category",
+                "description": "Store a newly created category.",
+                "operationId": "cca49a87d9b0ebb9a98ad7c154b71737",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Áo Nam"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Danh mục áo nam"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Category created successfully"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/categories/{id}": {
@@ -258,6 +305,195 @@
                         "description": "Not found"
                     }
                 }
+            },
+            "delete": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Soft delete category",
+                "description": "Soft delete a category.",
+                "operationId": "9b61b65823f4a21f182506b34ddf805c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Category deleted successfully"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Update category",
+                "description": "Update a specific category.",
+                "operationId": "b13d20619d95750562d5ccb8ae81d765",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Áo Thun Nam"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Updated description"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Category updated successfully"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/categories/trashed": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Get soft deleted categories",
+                "description": "Get trashed categories.",
+                "operationId": "f384cb25ac4c41a40ccd857ebff0febd",
+                "responses": {
+                    "200": {
+                        "description": "Trashed categories retrieved successfully"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/categories/{id}/restore": {
+            "patch": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Restore category",
+                "description": "Restore a soft deleted category.",
+                "operationId": "e58ec3fdf3cae72ba7731f80245ab739",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Category restored successfully"
+                    },
+                    "400": {
+                        "description": "Restore failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/categories/{id}/force-delete": {
+            "delete": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Force delete category",
+                "description": "Permanently delete a category.",
+                "operationId": "f4257836f9122280614ca4a7433d16d7",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Category permanently deleted"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/products": {
@@ -296,6 +532,62 @@
                         "description": "Success"
                     }
                 }
+            },
+            "post": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Create new product",
+                "operationId": "785644b7d7dd38af4b51dafd0fbc1b6d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "price"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "category_id": {
+                                        "type": "integer"
+                                    },
+                                    "image": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Product created successfully"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/products/{id}": {
@@ -324,6 +616,165 @@
                         "description": "Not found"
                     }
                 }
+            },
+            "delete": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Soft delete product",
+                "operationId": "b49ce9f3cb168b233245548fb4ef36d3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product deleted successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Update product",
+                "operationId": "7b6a99d3d6d5c75a1ef063b213e8d068",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "price": {
+                                        "type": "number"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "category_id": {
+                                        "type": "integer"
+                                    },
+                                    "image": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Product updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/products/trashed": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Get trashed products",
+                "operationId": "e038afe43fc15f1175feac875ff8ed9f",
+                "responses": {
+                    "200": {
+                        "description": "Trashed list"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/products/{id}/restore": {
+            "patch": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Restore product",
+                "operationId": "2f1e3e63fd54f410d538be2fb7d6d4db",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product restored"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/products/{id}/force-delete": {
+            "delete": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Force delete product",
+                "operationId": "327a0d5cc1eb0b0960d4988c4628c85a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product permanently deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         }
     },

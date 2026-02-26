@@ -56,8 +56,33 @@ class ProductController extends Controller
     }
 
     /**
-     * Store a newly created product.
-     * Returns JSON response.
+     * @OA\Post(
+     *     path="/api/products",
+     *     summary="Create new product",
+     *     tags={"Products"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"name","price"},
+     *                 @OA\Property(property="name", type="string"),
+     *                 @OA\Property(property="price", type="number", format="float"),
+     *                 @OA\Property(property="description", type="string"),
+     *                 @OA\Property(property="category_id", type="integer"),
+     *                 @OA\Property(
+     *                     property="image",
+     *                     type="string",
+     *                     format="binary"
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Product created successfully"),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
      */
     public function store(ProductRequest $request)
     {
@@ -96,8 +121,32 @@ class ProductController extends Controller
     }
 
     /**
-     * Update a specific product.
-     * Returns JSON response.
+     * @OA\Patch(
+     *     path="/api/products/{id}",
+     *     summary="Update product",
+     *     tags={"Products"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(property="name", type="string"),
+     *                 @OA\Property(property="price", type="number"),
+     *                 @OA\Property(property="description", type="string"),
+     *                 @OA\Property(property="category_id", type="integer"),
+     *                 @OA\Property(property="image", type="string", format="binary")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Product updated successfully")
+     * )
      */
     public function update(ProductRequest $request, $id)
     {
@@ -118,8 +167,19 @@ class ProductController extends Controller
     }
 
     /**
-     * Soft delete a product.
-     * Returns JSON response.
+     * @OA\Delete(
+     *     path="/api/products/{id}",
+     *     summary="Soft delete product",
+     *     tags={"Products"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(response=200, description="Product deleted successfully")
+     * )
      */
     public function destroy($id)
     {
@@ -131,8 +191,13 @@ class ProductController extends Controller
     }
 
     /**
-     * Get trashed (soft deleted) products.
-     * Returns JSON response.
+     * @OA\Get(
+     *     path="/api/products/trashed",
+     *     summary="Get trashed products",
+     *     tags={"Products"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Trashed list")
+     * )
      */
     public function trashed(Request $request)
     {
@@ -144,8 +209,19 @@ class ProductController extends Controller
     }
 
     /**
-     * Restore a soft deleted product.
-     * Returns JSON response.
+     * @OA\Patch(
+     *     path="/api/products/{id}/restore",
+     *     summary="Restore product",
+     *     tags={"Products"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(response=200, description="Product restored")
+     * )
      */
     public function restore($id)
     {
@@ -162,8 +238,19 @@ class ProductController extends Controller
     }
 
     /**
-     * Force delete a product permanently.
-     * Returns JSON response.
+     * @OA\Delete(
+     *     path="/api/products/{id}/force-delete",
+     *     summary="Force delete product",
+     *     tags={"Products"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(response=200, description="Product permanently deleted")
+     * )
      */
     public function forceDelete($id)
     {

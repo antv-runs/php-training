@@ -46,7 +46,27 @@ class CategoryController extends Controller
 
     /**
      * Store a newly created category.
-     * Returns JSON response.
+     *
+     * @OA\Post(
+     *     path="/api/categories",
+     *     summary="Create new category",
+     *     tags={"Categories"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name"},
+     *             @OA\Property(property="name", type="string", example="Áo Nam"),
+     *             @OA\Property(property="description", type="string", example="Danh mục áo nam")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Category created successfully"
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
      */
     public function store(CategoryRequest $request)
     {
@@ -80,7 +100,29 @@ class CategoryController extends Controller
 
     /**
      * Update a specific category.
-     * Returns JSON response.
+     *
+     * @OA\Patch(
+     *     path="/api/categories/{id}",
+     *     summary="Update category",
+     *     tags={"Categories"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string", example="Áo Thun Nam"),
+     *             @OA\Property(property="description", type="string", example="Updated description")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Category updated successfully"),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
      */
     public function update(CategoryRequest $request, $id)
     {
@@ -96,7 +138,22 @@ class CategoryController extends Controller
 
     /**
      * Soft delete a category.
-     * Returns JSON response.
+     *
+     * @OA\Delete(
+     *     path="/api/categories/{id}",
+     *     summary="Soft delete category",
+     *     tags={"Categories"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(response=200, description="Category deleted successfully"),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
      */
     public function destroy($id)
     {
@@ -107,8 +164,17 @@ class CategoryController extends Controller
     }
 
     /**
-     * Get trashed (soft deleted) categories.
-     * Returns JSON response.
+     * Get trashed categories.
+     *
+     * @OA\Get(
+     *     path="/api/categories/trashed",
+     *     summary="Get soft deleted categories",
+     *     tags={"Categories"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Trashed categories retrieved successfully"),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
      */
     public function trashed(Request $request)
     {
@@ -121,7 +187,23 @@ class CategoryController extends Controller
 
     /**
      * Restore a soft deleted category.
-     * Returns JSON response.
+     *
+     * @OA\Patch(
+     *     path="/api/categories/{id}/restore",
+     *     summary="Restore category",
+     *     tags={"Categories"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(response=200, description="Category restored successfully"),
+     *     @OA\Response(response=400, description="Restore failed"),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
      */
     public function restore($id)
     {
@@ -138,8 +220,23 @@ class CategoryController extends Controller
     }
 
     /**
-     * Force delete a category permanently.
-     * Returns JSON response.
+     * Permanently delete a category.
+     *
+     * @OA\Delete(
+     *     path="/api/categories/{id}/force-delete",
+     *     summary="Force delete category",
+     *     tags={"Categories"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(response=200, description="Category permanently deleted"),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
      */
     public function forceDelete($id)
     {
