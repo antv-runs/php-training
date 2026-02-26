@@ -37,6 +37,16 @@ class ProductController extends Controller
     /**
      * Get all products with pagination.
      * Returns JSON response.
+     *
+     * @OA\Get(
+     *     path="/api/products",
+     *     summary="Product list",
+     *     tags={"Products"},
+     *     @OA\Parameter(name="search", in="query", @OA\Schema(type="string")),
+     *     @OA\Parameter(name="category_id", in="query", @OA\Schema(type="integer")),
+     *     @OA\Parameter(name="per_page", in="query", @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Success")
+     * )
      */
     public function index(Request $request)
     {
@@ -67,8 +77,17 @@ class ProductController extends Controller
     }
 
     /**
-     * Get a specific product by ID.
+     * Get a specific product by ID or slug.
      * Returns JSON response.
+     *
+     * @OA\Get(
+     *     path="/api/products/{id}",
+     *     summary="Product detail",
+     *     tags={"Products"},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\Response(response=200, description="Success"),
+     *     @OA\Response(response=404, description="Not found")
+     * )
      */
     public function show($id)
     {

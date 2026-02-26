@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Contracts\AuthServiceInterface;
+use App\Http\Requests\RegisterRequest;
 
 class AuthController extends Controller
 {
@@ -15,16 +16,33 @@ class AuthController extends Controller
     {
         $this->authService = $authService;
     }
-    // Register
-    public function register(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
 
+    // Register
+    /**
+     * @OA\Post(
+     *     path="/api/auth/register",
+     *     summary="User registration",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 @OA\Property(property="name", type="string"),
+     *                 @OA\Property(property="email", type="string"),
+     *                 @OA\Property(property="password", type="string"),
+     *                 @OA\Property(property="password_confirmation", type="string")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Created"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
+    public function register(RegisterRequest $request)
+    {
         try {
+            $request->validated();
             $result = $this->authService->register($request->only(['name', 'email', 'password']));
 
             return response()->json([
@@ -39,15 +57,29 @@ class AuthController extends Controller
     }
 
     // LOGIN
-    public function login(Request $request)
+    /**
+     * @OA\Post(
+     *     path="/api/auth/login",
+     *     summary="User login",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 @OA\Property(property="email", type="string"),
+     *                 @OA\Property(property="password", type="string")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Success"),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
+     */
+    public function login(LoginRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required'
-        ]);
-
         try {
-            $credentials = $request->only('email', 'password');
+            $credentials = $request->validated();;
             $result = $this->authService->login($credentials);
 
             if (empty($result)) {
@@ -61,7 +93,37 @@ class AuthController extends Controller
         }
     }
 
-    // LOGOUT
+    /**
+     * @OA\Post(
+     *     path="/api/auth/logout",
+     *     summary="Logout current user",
+     *     tags={"Auth"},
+     *     security={{"bearerAuth":{}}},
+     *     
+     *     @OA\Response(
+     *         response=200,
+     *         description="Logout successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Logout successfully")
+     *         )
+     *     ),
+     *     
+     *     @OA\Response(
+     *         response=401,
+     *         description="Not authenticated",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Not authenticated")
+     *         )
+     *     ),
+     *     
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error"
+     *     )
+     * )
+     */
     public function logout(Request $request)
     {
         try {
@@ -77,7 +139,39 @@ class AuthController extends Controller
         }
     }
 
-    // ME
+    /**
+     * @OA\Get(
+     *     path="/api/auth/me",
+     *     summary="Get current authenticated user",
+     *     tags={"Auth"},
+     *     security={{"bearerAuth":{}}},
+     *     
+     *     @OA\Response(
+     *         response=200,
+     *         description="User info",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="An Van"),
+     *                 @OA\Property(property="email", type="string", example="an@example.com")
+     *             )
+     *         )
+     *     ),
+     *     
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error"
+     *     )
+     * )
+     */
     public function me(Request $request)
     {
         try {

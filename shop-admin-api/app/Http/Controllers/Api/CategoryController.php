@@ -27,6 +27,15 @@ class CategoryController extends Controller
     /**
      * Get all categories with pagination.
      * Returns JSON response.
+     *
+     * @OA\Get(
+     *     path="/api/categories",
+     *     summary="Category list",
+     *     tags={"Categories"},
+     *     @OA\Parameter(name="search", in="query", @OA\Schema(type="string")),
+     *     @OA\Parameter(name="per_page", in="query", @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Success")
+     * )
      */
     public function index(Request $request)
     {
@@ -53,6 +62,15 @@ class CategoryController extends Controller
     /**
      * Get a specific category by ID.
      * Returns JSON response.
+     *
+     * @OA\Get(
+     *     path="/api/categories/{id}",
+     *     summary="Category detail",
+     *     tags={"Categories"},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Success"),
+     *     @OA\Response(response=404, description="Not found")
+     * )
      */
     public function show($id)
     {
