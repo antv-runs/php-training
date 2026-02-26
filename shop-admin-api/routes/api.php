@@ -2,9 +2,9 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\ProductController;
-use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\ProfileController;
 
@@ -24,8 +24,6 @@ use App\Http\Controllers\ProfileController;
 // Public routes
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
-Route::post('/auth/forgot-password', [\App\Http\Controllers\Auth\PasswordResetLinkController::class, 'store']);
-Route::post('/auth/reset-password', [\App\Http\Controllers\Auth\NewPasswordController::class, 'store']);
 
 // Products and Categories (public read-only)
 Route::get('/products', [ProductController::class, 'index']);
@@ -37,9 +35,6 @@ Route::get('/categories/{id}', [CategoryController::class, 'show']);
 Route::middleware('auth:sanctum')->group(function () {
     // Auth endpoints
     Route::post('/auth/logout', [AuthController::class, 'logout']);
-    Route::post('/auth/verify-email/{id}/{hash}', [\App\Http\Controllers\Auth\VerifyEmailController::class, '__invoke']);
-    Route::post('/auth/email/verification-notification', [\App\Http\Controllers\Auth\EmailVerificationNotificationController::class, 'store']);
-    Route::post('/auth/confirm-password', [\App\Http\Controllers\Auth\ConfirmablePasswordController::class, 'store']);
 
     // User info
     Route::get('/auth/me', function (Request $request) {
@@ -47,7 +42,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // User Profile routes
-    Route::get('/profile', [ProfileController::class, 'show']);
     Route::patch('/profile', [ProfileController::class, 'update']);
     Route::delete('/profile/image', [ProfileController::class, 'deleteImage']);
 

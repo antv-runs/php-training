@@ -10,7 +10,7 @@ class Product extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['name', 'price', 'description', 'category_id', 'image'];
+    protected $fillable = ['name', 'slug', 'price', 'description', 'category_id', 'image'];
 
     /**
      * Get the category that owns the product.

@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductRequest;
 use App\Models\Product;
+use App\Http\Resources\ProductResource;
 use App\Contracts\ProductServiceInterface;
 use App\Contracts\FileUploadServiceInterface;
 use Illuminate\Http\Request;
@@ -41,10 +42,7 @@ class ProductController extends Controller
     {
         $perPage = 10;
         $products = $this->productService->getAllProducts($request, $perPage);
-        return response()->json([
-            'message' => 'Products retrieved successfully',
-            'data' => $products
-        ]);
+        return ProductResource::collection($products)->additional(['message' => 'Products retrieved successfully']);
     }
 
     /**
@@ -75,10 +73,7 @@ class ProductController extends Controller
     public function show($id)
     {
         $product = $this->productService->getProduct($id);
-        return response()->json([
-            'message' => 'Product retrieved successfully',
-            'data' => $product
-        ]);
+        return (new ProductResource($product))->additional(['message' => 'Product retrieved successfully']);
     }
 
     /**

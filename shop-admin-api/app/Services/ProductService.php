@@ -28,10 +28,13 @@ class ProductService implements ProductServiceInterface
             $query = Product::with('category');
         }
 
-        // Search by name
+        // Search by name or slug (helpful for future)
         if ($request->filled('search')) {
             $search = $request->input('search');
-            $query->where('name', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+                $q->orWhere('slug', 'like', "%{$search}%");
+            });
         }
 
         // Filter by category
@@ -65,15 +68,25 @@ class ProductService implements ProductServiceInterface
      */
     public function createProduct(array $data)
     {
+        // generate slug based on name
+        if (!empty($data['name'])) {
+            $data['slug'] = $this->generateUniqueSlug($data['name']);
+        }
+
         return Product::create($data);
     }
 
     /**
      * Get product by ID
      */
-    public function getProduct($id)
+    public function getProduct($idOrSlug)
     {
-        return Product::findOrFail($id);
+        // Accept numeric id or slug string
+        if (is_numeric($idOrSlug)) {
+            return Product::with('category')->findOrFail($idOrSlug);
+        }
+
+        return Product::with('category')->where('slug', $idOrSlug)->firstOrFail();
     }
 
     /**
@@ -81,6 +94,11 @@ class ProductService implements ProductServiceInterface
      */
     public function updateProduct(Product $product, array $data)
     {
+        // regenerate slug if name changed
+        if (!empty($data['name']) && $data['name'] !== $product->name) {
+            $data['slug'] = $this->generateUniqueSlug($data['name'], $product->id);
+        }
+
         // If a new image is provided, remove old image first
         if (!empty($data['image']) && $product->image) {
             try {
@@ -156,5 +174,30 @@ class ProductService implements ProductServiceInterface
             'success' => true,
             'message' => 'Product permanently deleted'
         ];
+    }
+
+    /**
+     * Generate unique slug for a product name, optionally exclude current id
+     */
+    private function generateUniqueSlug($name, $excludeId = null)
+    {
+        $slug = \Illuminate\Support\Str::slug($name);
+        $original = $slug;
+        $i = 1;
+
+        $query = Product::where('slug', $slug);
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        while ($query->exists()) {
+            $slug = $original . '-' . $i++;
+            $query = Product::where('slug', $slug);
+            if ($excludeId) {
+                $query->where('id', '!=', $excludeId);
+            }
+        }
+
+        return $slug;
     }
 }

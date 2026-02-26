@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CategoryRequest;
 use App\Models\Category;
+use App\Http\Resources\CategoryResource;
 use App\Contracts\CategoryServiceInterface;
 use Illuminate\Http\Request;
 
@@ -31,10 +32,7 @@ class CategoryController extends Controller
     {
         $perPage = 15;
         $categories = $this->categoryService->getAllCategories($request, $perPage);
-        return response()->json([
-            'message' => 'Categories retrieved successfully',
-            'data' => $categories
-        ]);
+        return CategoryResource::collection($categories)->additional(['message' => 'Categories retrieved successfully']);
     }
 
     /**
@@ -59,10 +57,7 @@ class CategoryController extends Controller
     public function show($id)
     {
         $category = $this->categoryService->getCategory($id);
-        return response()->json([
-            'message' => 'Category retrieved successfully',
-            'data' => $category
-        ]);
+        return (new CategoryResource($category))->additional(['message' => 'Category retrieved successfully']);
     }
 
     /**

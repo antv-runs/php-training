@@ -110,10 +110,12 @@ class DatabaseSeeder extends Seeder
         $allCategories = Category::all();
 
         foreach ($products as $productName) {
+            $slug = Str::slug($productName);
 
             Product::firstOrCreate(
                 ['name' => $productName],
                 [
+                    'slug' => $slug,
                     'price' => rand(100000, 1000000),
                     'description' => "Sản phẩm {$productName} chất lượng cao, thời trang hiện đại.",
                     'category_id' => $allCategories->random()->id,

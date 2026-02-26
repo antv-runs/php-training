@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Contracts\ProfileServiceInterface;
@@ -19,18 +19,6 @@ class ProfileController extends Controller
     public function __construct(ProfileServiceInterface $profileService)
     {
         $this->profileService = $profileService;
-    }
-
-    /**
-     * Show the admin's profile.
-     */
-    public function show()
-    {
-        $user = auth()->user();
-        return response()->json([
-            'user' => auth()->user(),
-            'timestamp' => now()
-        ]);
     }
 
     /**
