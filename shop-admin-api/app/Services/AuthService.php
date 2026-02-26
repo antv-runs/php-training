@@ -26,7 +26,7 @@ class AuthService implements AuthServiceInterface
         Log::info('AuthService: register successful', ['user_id' => $user->id]);
 
         return [
-            'user' => $user,
+            'user' => $user->only(['id', 'name', 'email']),
             'token' => $token,
         ];
     }

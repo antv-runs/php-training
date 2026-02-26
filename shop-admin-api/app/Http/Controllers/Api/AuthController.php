@@ -29,10 +29,10 @@ class AuthController extends Controller
      *         @OA\MediaType(
      *             mediaType="application/json",
      *             @OA\Schema(
-     *                 @OA\Property(property="name", type="string"),
-     *                 @OA\Property(property="email", type="string"),
-     *                 @OA\Property(property="password", type="string"),
-     *                 @OA\Property(property="password_confirmation", type="string")
+     *                 @OA\Property(property="name", type="string", example="Nguyen Van A"),
+     *                 @OA\Property(property="email", type="string", example="vana@example.com"),
+     *                 @OA\Property(property="password", type="string", example="12345678"),
+     *                 @OA\Property(property="password_confirmation", type="string", example="12345678")
      *             )
      *         )
      *     ),
@@ -43,7 +43,6 @@ class AuthController extends Controller
     public function register(RegisterRequest $request)
     {
         try {
-            $request->validated();
             $result = $this->authService->register($request->only(['name', 'email', 'password']));
 
             return response()->json([

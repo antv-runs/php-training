@@ -25,16 +25,20 @@
                             "schema": {
                                 "properties": {
                                     "name": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "example": "Nguyen Van A"
                                     },
                                     "email": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "example": "vana@example.com"
                                     },
                                     "password": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "example": "12345678"
                                     },
                                     "password_confirmation": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "example": "12345678"
                                     }
                                 },
                                 "type": "object"
