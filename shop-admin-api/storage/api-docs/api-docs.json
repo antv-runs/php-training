@@ -66,10 +66,14 @@
                             "schema": {
                                 "properties": {
                                     "email": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "admin@example.com"
                                     },
                                     "password": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password"
                                     }
                                 },
                                 "type": "object"

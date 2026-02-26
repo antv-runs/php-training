@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Contracts\AuthServiceInterface;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\LoginRequest;
 
 class AuthController extends Controller
 {
@@ -56,7 +57,6 @@ class AuthController extends Controller
         }
     }
 
-    // LOGIN
     /**
      * @OA\Post(
      *     path="/api/auth/login",
@@ -67,8 +67,8 @@ class AuthController extends Controller
      *         @OA\MediaType(
      *             mediaType="application/json",
      *             @OA\Schema(
-     *                 @OA\Property(property="email", type="string"),
-     *                 @OA\Property(property="password", type="string")
+     *                 @OA\Property(property="email", type="string", format="email", example="admin@example.com"),
+     *                 @OA\Property(property="password", type="string", format="password", example="password")
      *             )
      *         )
      *     ),
@@ -99,7 +99,7 @@ class AuthController extends Controller
      *     summary="Logout current user",
      *     tags={"Auth"},
      *     security={{"bearerAuth":{}}},
-     *     
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Logout successfully",
@@ -108,7 +108,7 @@ class AuthController extends Controller
      *             @OA\Property(property="message", type="string", example="Logout successfully")
      *         )
      *     ),
-     *     
+     *
      *     @OA\Response(
      *         response=401,
      *         description="Not authenticated",
@@ -117,7 +117,7 @@ class AuthController extends Controller
      *             @OA\Property(property="message", type="string", example="Not authenticated")
      *         )
      *     ),
-     *     
+     *
      *     @OA\Response(
      *         response=500,
      *         description="Server error"
@@ -145,7 +145,7 @@ class AuthController extends Controller
      *     summary="Get current authenticated user",
      *     tags={"Auth"},
      *     security={{"bearerAuth":{}}},
-     *     
+     *
      *     @OA\Response(
      *         response=200,
      *         description="User info",
@@ -160,12 +160,12 @@ class AuthController extends Controller
      *             )
      *         )
      *     ),
-     *     
+     *
      *     @OA\Response(
      *         response=401,
      *         description="Unauthenticated"
      *     ),
-     *     
+     *
      *     @OA\Response(
      *         response=500,
      *         description="Server error"
@@ -176,6 +176,7 @@ class AuthController extends Controller
     {
         try {
             $user = $this->authService->me($request);
+            Log::info('AuthController::me user: '.($user ? $user->email : 'null'));
             return response()->json(['success' => true, 'data' => $user]);
         } catch (\Throwable $e) {
             Log::error('AuthController::me error: '.$e->getMessage(), ['exception' => $e]);
