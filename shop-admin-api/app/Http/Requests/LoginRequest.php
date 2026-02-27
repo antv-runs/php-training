@@ -24,6 +24,7 @@ class LoginRequest extends BaseApiRequest
             'email.email' => 'Email format is invalid',
             'password.required' => 'Password is required',
             'password.min' => 'Password must be at least 8 characters long',
+        ];
     }
 
     protected function prepareForValidation()
