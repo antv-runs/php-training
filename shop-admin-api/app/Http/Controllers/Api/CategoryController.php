@@ -2,23 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\CategoryRequest;
-use App\Models\Category;
 use App\Http\Resources\CategoryResource;
 use App\Contracts\CategoryServiceInterface;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
-class CategoryController extends Controller
+class CategoryController extends BaseController
 {
-    /**
-     * @var CategoryServiceInterface
-     */
     private $categoryService;
 
-    /**
-     * Inject CategoryServiceInterface
-     */
     public function __construct(CategoryServiceInterface $categoryService)
     {
         $this->categoryService = $categoryService;
@@ -39,9 +32,13 @@ class CategoryController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = 15;
+        $perPage = $request->get('per_page', 15);
         $categories = $this->categoryService->getAllCategories($request, $perPage);
-        return CategoryResource::collection($categories)->additional(['message' => 'Categories retrieved successfully']);
+        return $this->success(
+            CategoryResource::collection($categories),
+            'Categories retrieved successfully'
+        );
+        // return CategoryResource::collection($categories)->additional(['message' => 'Products retrieved successfully']);
     }
 
     /**
@@ -71,12 +68,13 @@ class CategoryController extends Controller
     public function store(CategoryRequest $request)
     {
         $data = $request->only(['name', 'description']);
-        $result = $this->categoryService->createCategory($data);
+        $category = $this->categoryService->createCategory($data);
 
-        return response()->json([
-            'message' => 'Category created successfully',
-            'data' => $result['data'] ?? null
-        ], 201);
+        return $this->success(
+            new CategoryResource($category),
+            'Category created successfully',
+            Response::HTTP_CREATED
+        );
     }
 
     /**
@@ -95,7 +93,10 @@ class CategoryController extends Controller
     public function show($id)
     {
         $category = $this->categoryService->getCategory($id);
-        return (new CategoryResource($category))->additional(['message' => 'Category retrieved successfully']);
+        return $this->success(
+            new CategoryResource($category),
+            'Category retrieved successfully'
+        );
     }
 
     /**
@@ -130,10 +131,10 @@ class CategoryController extends Controller
         $data = $request->only(['name', 'description']);
         $result = $this->categoryService->updateCategory($category, $data);
 
-        return response()->json([
-            'message' => 'Category updated successfully',
-            'data' => $result['data'] ?? $category
-        ]);
+        return $this->success(
+            new CategoryResource($result),
+            'Category updated successfully'
+        );
     }
 
     /**
@@ -157,10 +158,11 @@ class CategoryController extends Controller
      */
     public function destroy($id)
     {
-        $result = $this->categoryService->deleteCategory($id);
-        return response()->json([
-            'message' => 'Category deleted successfully'
-        ]);
+        $this->categoryService->deleteCategory($id);
+        return $this->success(
+            null,
+            'Category deleted successfully'
+        );
     }
 
     /**
@@ -179,10 +181,10 @@ class CategoryController extends Controller
     public function trashed(Request $request)
     {
         $categories = $this->categoryService->getTrashed(15);
-        return response()->json([
-            'message' => 'Trashed categories retrieved successfully',
-            'data' => $categories
-        ]);
+        return $this->success(
+            CategoryResource::collection($categories),
+            'Trashed categories retrieved successfully'
+        );
     }
 
     /**
@@ -207,16 +209,11 @@ class CategoryController extends Controller
      */
     public function restore($id)
     {
-        $result = $this->categoryService->restoreCategory($id);
-
-        if (!$result['success']) {
-            return response()->json(['message' => $result['message']], 400);
-        }
-
-        return response()->json([
-            'message' => $result['message'],
-            'data' => $result['data']
-        ]);
+        $category = $this->categoryService->restoreCategory($id);
+        return $this->success(
+            new CategoryResource($category),
+            'Category restored successfully'
+        );
     }
 
     /**
@@ -240,8 +237,11 @@ class CategoryController extends Controller
      */
     public function forceDelete($id)
     {
-        $result = $this->categoryService->forceDeleteCategory($id);
+        $this->categoryService->forceDeleteCategory($id);
 
-        return response()->json(['message' => $result['message']]);
+        return $this->success(
+            null,
+            'Category permanently deleted'
+        );
     }
 }

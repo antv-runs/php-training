@@ -108,17 +108,6 @@ class CategoryService implements CategoryServiceInterface
     }
 
     /**
-     * Validate category data
-     */
-    public function validateCategory(array $data)
-    {
-        return validator($data, [
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string'
-        ])->validated();
-    }
-
-    /**
      * Get trashed categories
      */
     public function getTrashed($perPage = 15)
@@ -132,21 +121,13 @@ class CategoryService implements CategoryServiceInterface
     public function restoreCategory($id)
     {
         $category = Category::withTrashed()->findOrFail($id);
-        
-        if (!$category->trashed()) {
-            return [
-                'success' => false,
-                'message' => 'Category is not deleted.'
-            ];
+
+        if (! $category->trashed()) {
+            throw new \Exception('Category is not deleted');
         }
 
         $category->restore();
-
-        return [
-            'success' => true,
-            'message' => 'Category restored successfully',
-            'data' => $category
-        ];
+        return $category;
     }
 
     /**
@@ -156,10 +137,5 @@ class CategoryService implements CategoryServiceInterface
     {
         $category = Category::withTrashed()->findOrFail($id);
         $category->forceDelete();
-
-        return [
-            'success' => true,
-            'message' => 'Category permanently deleted'
-        ];
     }
 }

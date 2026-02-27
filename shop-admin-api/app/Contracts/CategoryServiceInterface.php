@@ -32,11 +32,6 @@ interface CategoryServiceInterface
     public function deleteCategory($id);
 
     /**
-     * Validate category data
-     */
-    public function validateCategory(array $data);
-
-    /**
      * Get trashed categories
      */
     public function getTrashed($perPage = 15);

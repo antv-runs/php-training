@@ -50,7 +50,7 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = 10;
+        $perPage = $request->get('per_page', 15);
         $products = $this->productService->getAllProducts($request, $perPage);
         return ProductResource::collection($products)->additional(['message' => 'Products retrieved successfully']);
     }
