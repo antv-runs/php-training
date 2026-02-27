@@ -43,6 +43,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update']);
     Route::delete('/profile/image', [ProfileController::class, 'deleteImage']);
 
+    // Order endpoints for authenticated users
+    Route::get('/orders', [\App\Http\Controllers\Api\OrderController::class, 'index']);
+    Route::get('/orders/{id}', [\App\Http\Controllers\Api\OrderController::class, 'show']);
+    Route::post('/orders', [\App\Http\Controllers\Api\OrderController::class, 'store']);
+
     // Admin only routes
     Route::middleware(['is_admin'])->group(function () {
         // Users Management

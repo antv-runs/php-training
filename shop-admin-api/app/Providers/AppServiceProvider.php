@@ -32,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(CategoryServiceInterface::class, CategoryService::class);
         $this->app->bind(ProfileServiceInterface::class, ProfileService::class);
         $this->app->bind(FileUploadServiceInterface::class, FileUploadService::class);
+        $this->app->bind(\App\Contracts\OrderServiceInterface::class, \App\Services\OrderService::class);
     }
 
     /**
