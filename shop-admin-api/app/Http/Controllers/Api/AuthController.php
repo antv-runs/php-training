@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Contracts\AuthServiceInterface;
@@ -10,12 +9,9 @@ use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Resources\UserResource;
 use Symfony\Component\HttpFoundation\Response;
-use App\Traits\HttpResponses;
 
-class AuthController extends Controller
+class AuthController extends BaseController
 {
-    use HttpResponses;
-
     protected $authService;
 
     public function __construct(AuthServiceInterface $authService)

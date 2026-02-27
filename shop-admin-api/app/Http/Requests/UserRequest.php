@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
-class UserRequest extends BaseApiRequest
+use Illuminate\Foundation\Http\FormRequest;
+
+class UserRequest extends FormRequest
 {
     public function authorize()
     {
