@@ -134,53 +134,51 @@ class DatabaseSeeder extends Seeder
 
     public function createOrders()
     {
-        $users = User::where('role', 'user')->get();
+        $targetEmail = 'user1@example.com';
+        $user = User::where('email', $targetEmail)->first();
+
+        if (!$user) {
+            return;
+        }
+
         $products = Product::all();
 
-        foreach ($users as $user) {
+        for ($i = 0; $i < 20; $i++) {
 
-            // Mỗi user tạo 1–3 đơn hàng
-            $numberOfOrders = rand(1, 3);
+            DB::transaction(function () use ($user, $products) {
 
-            for ($i = 0; $i < $numberOfOrders; $i++) {
+                $order = Order::create([
+                    'user_id' => $user->id,
+                    'total_amount' => 0,
+                    'status' => collect(['pending', 'processing', 'completed'])->random()
+                ]);
 
-                DB::transaction(function () use ($user, $products) {
+                $totalAmount = 0;
 
-                    $order = Order::create([
-                        'user_id' => $user->id,
-                        'total_amount' => 0,
-                        'status' => collect(['pending', 'processing', 'completed'])->random()
+                $itemsCount = rand(1, 5);
+                $selectedProducts = $products->random($itemsCount);
+
+                foreach ($selectedProducts as $product) {
+
+                    $quantity = rand(1, 3);
+                    $price = $product->price;
+                    $total = $price * $quantity;
+
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'product_id' => $product->id,
+                        'quantity' => $quantity,
+                        'price' => $price,
+                        'total' => $total,
                     ]);
 
-                    $totalAmount = 0;
+                    $totalAmount += $total;
+                }
 
-                    // Mỗi order có 1–5 sản phẩm
-                    $itemsCount = rand(1, 5);
-                    $selectedProducts = $products->random($itemsCount);
-
-                    foreach ($selectedProducts as $product) {
-
-                        $quantity = rand(1, 3);
-                        $price = $product->price; // không trust FE
-                        $total = $price * $quantity;
-
-                        OrderItem::create([
-                            'order_id' => $order->id,
-                            'product_id' => $product->id,
-                            'quantity' => $quantity,
-                            'price' => $price,
-                            'total' => $total,
-                        ]);
-
-                        $totalAmount += $total;
-                    }
-
-                    // Update tổng tiền order
-                    $order->update([
-                        'total_amount' => $totalAmount
-                    ]);
-                });
-            }
+                $order->update([
+                    'total_amount' => $totalAmount
+                ]);
+            });
         }
     }
 }
