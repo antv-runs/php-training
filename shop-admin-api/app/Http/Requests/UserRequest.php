@@ -2,15 +2,7 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-
-/**
- * User form request validation
- * 
- * Single Responsibility: centralizes user validation rules
- * Form Requests keep controllers thin and validation logic organized
- */
-class UserRequest extends FormRequest
+class UserRequest extends BaseApiRequest
 {
     public function authorize()
     {

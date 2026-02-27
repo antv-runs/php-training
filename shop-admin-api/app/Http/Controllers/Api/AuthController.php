@@ -8,9 +8,14 @@ use Illuminate\Support\Facades\Log;
 use App\Contracts\AuthServiceInterface;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
+use App\Http\Resources\UserResource;
+use Symfony\Component\HttpFoundation\Response;
+use App\Traits\HttpResponses;
 
 class AuthController extends Controller
 {
+    use HttpResponses;
+
     protected $authService;
 
     public function __construct(AuthServiceInterface $authService)
@@ -45,14 +50,10 @@ class AuthController extends Controller
         try {
             $result = $this->authService->register($request->only(['name', 'email', 'password']));
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Register successfully',
-                'data' => $result
-            ], 201);
+            return $this->success($result, 'Register successfully', Response::HTTP_CREATED);
         } catch (\Throwable $e) {
             Log::error('AuthController::register error: '.$e->getMessage(), ['exception' => $e]);
-            return response()->json(['success' => false, 'message' => 'Server error'], 500);
+            return $this->error('Server error', Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -82,13 +83,13 @@ class AuthController extends Controller
             $result = $this->authService->login($credentials);
 
             if (empty($result)) {
-                return response()->json(['success' => false, 'message' => 'Invalid credentials'], 401);
+                return $this->error('Invalid credentials', Response::HTTP_UNAUTHORIZED);
             }
 
-            return response()->json(['success' => true, 'message' => 'Login successfully', 'data' => $result]);
+            return $this->success($result, 'Login successfully');
         } catch (\Throwable $e) {
             Log::error('AuthController::login error: '.$e->getMessage(), ['exception' => $e]);
-            return response()->json(['success' => false, 'message' => 'Server error'], 500);
+            return $this->error('Server error', Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -128,13 +129,13 @@ class AuthController extends Controller
         try {
             $ok = $this->authService->logout($request);
             if (! $ok) {
-                return response()->json(['success' => false, 'message' => 'Not authenticated'], 401);
+                return $this->error('Not authenticated', Response::HTTP_UNAUTHORIZED);
             }
 
-            return response()->json(['success' => true, 'message' => 'Logout successfully']);
+            return $this->success(null, 'Logout successfully');
         } catch (\Throwable $e) {
             Log::error('AuthController::logout error: '.$e->getMessage(), ['exception' => $e]);
-            return response()->json(['success' => false, 'message' => 'Server error'], 500);
+            return $this->error('Server error', Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -176,10 +177,10 @@ class AuthController extends Controller
         try {
             $user = $this->authService->me($request);
             Log::info('AuthController::me user: '.($user ? $user->email : 'null'));
-            return response()->json(['success' => true, 'data' => $user]);
+            return $this->success(new UserResource($user), 'User info retrieved');
         } catch (\Throwable $e) {
             Log::error('AuthController::me error: '.$e->getMessage(), ['exception' => $e]);
-            return response()->json(['success' => false, 'message' => 'Server error'], 500);
+            return $this->error('Server error', Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

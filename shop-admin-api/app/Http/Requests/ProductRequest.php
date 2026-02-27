@@ -2,15 +2,7 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-
-/**
- * Product form request validation
- * 
- * Single Responsibility: validates product data only
- * Improves maintainability and follows SOLID principles
- */
-class ProductRequest extends FormRequest
+class ProductRequest extends BaseApiRequest
 {
     public function authorize()
     {

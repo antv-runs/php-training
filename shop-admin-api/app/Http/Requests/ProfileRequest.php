@@ -2,9 +2,7 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-
-class ProfileRequest extends FormRequest
+class ProfileRequest extends BaseApiRequest
 {
     public function authorize()
     {
