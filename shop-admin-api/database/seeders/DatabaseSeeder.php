@@ -8,6 +8,9 @@ use Illuminate\Support\Str;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Order;
+use App\Models\OrderItem;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -28,7 +31,14 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // Create 20 normal users
+        $this->createUsers();
+        $this->createCategories();
+        $this->createProducts();
+        $this->createOrders();
+    }
+
+    public function createUsers()
+    {
         for ($i = 1; $i <= 20; $i++) {
             $email = "user{$i}@example.com";
 
@@ -41,11 +51,10 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
         }
+    }
 
-        // ==========================
-        // Create 20 Categories
-        // ==========================
-
+    public function createCategories()
+    {
         $categories = [
             'Áo Thun Nam',
             'Áo Thun Nữ',
@@ -78,12 +87,10 @@ class DatabaseSeeder extends Seeder
                 ]
             );
         }
+    }
 
-
-        // ==========================
-        // Create 20 Products
-        // ==========================
-
+    public function createProducts()
+    {
         $products = [
             'Áo Thun Nam Basic Cotton',
             'Áo Thun Nữ Form Rộng',
@@ -122,6 +129,58 @@ class DatabaseSeeder extends Seeder
                     'image' => 'default-product.jpg'
                 ]
             );
+        }
+    }
+
+    public function createOrders()
+    {
+        $users = User::where('role', 'user')->get();
+        $products = Product::all();
+
+        foreach ($users as $user) {
+
+            // Mỗi user tạo 1–3 đơn hàng
+            $numberOfOrders = rand(1, 3);
+
+            for ($i = 0; $i < $numberOfOrders; $i++) {
+
+                DB::transaction(function () use ($user, $products) {
+
+                    $order = Order::create([
+                        'user_id' => $user->id,
+                        'total_amount' => 0,
+                        'status' => collect(['pending', 'processing', 'completed'])->random()
+                    ]);
+
+                    $totalAmount = 0;
+
+                    // Mỗi order có 1–5 sản phẩm
+                    $itemsCount = rand(1, 5);
+                    $selectedProducts = $products->random($itemsCount);
+
+                    foreach ($selectedProducts as $product) {
+
+                        $quantity = rand(1, 3);
+                        $price = $product->price; // không trust FE
+                        $total = $price * $quantity;
+
+                        OrderItem::create([
+                            'order_id' => $order->id,
+                            'product_id' => $product->id,
+                            'quantity' => $quantity,
+                            'price' => $price,
+                            'total' => $total,
+                        ]);
+
+                        $totalAmount += $total;
+                    }
+
+                    // Update tổng tiền order
+                    $order->update([
+                        'total_amount' => $totalAmount
+                    ]);
+                });
+            }
         }
     }
 }

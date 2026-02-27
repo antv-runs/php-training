@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Api\OrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,9 +45,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/profile/image', [ProfileController::class, 'deleteImage']);
 
     // Order endpoints for authenticated users
-    Route::get('/orders', [\App\Http\Controllers\Api\OrderController::class, 'index']);
-    Route::get('/orders/{id}', [\App\Http\Controllers\Api\OrderController::class, 'show']);
-    Route::post('/orders', [\App\Http\Controllers\Api\OrderController::class, 'store']);
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/{id}', [OrderController::class, 'show']);
+    Route::post('/orders', [OrderController::class, 'store']);
 
     // Admin only routes
     Route::middleware(['is_admin'])->group(function () {
