@@ -39,12 +39,16 @@ class DatabaseSeeder extends Seeder
 
     public function createUsers()
     {
-        User::create([
-            'name' => "An 05",
-            'email' => "vanantran05@gmail.com",
-            'password' => Hash::make('password'),
-            'role' => 'user',
-        ]);
+        $targetEmail = 'vanantran05@gmail.com';
+        if (!User::where('email', $targetEmail)->exists()) {
+            User::create([
+                'name' => "An 05",
+                'email' => $targetEmail,
+                'password' => Hash::make('password'),
+                'role' => 'user',
+            ]);
+        }
+
 
         for ($i = 1; $i <= 20; $i++) {
             $email = "user{$i}@example.com";
@@ -98,41 +102,90 @@ class DatabaseSeeder extends Seeder
 
     public function createProducts()
     {
-        $products = [
-            'Áo Thun Nam Basic Cotton',
-            'Áo Thun Nữ Form Rộng',
-            'Áo Sơ Mi Nam Trắng Công Sở',
-            'Áo Sơ Mi Nữ Tay Dài Hàn Quốc',
-            'Quần Jeans Nam Slim Fit',
-            'Quần Jeans Nữ Ống Rộng',
-            'Quần Short Thể Thao Nam',
-            'Váy Đầm Dự Tiệc Sang Trọng',
-            'Áo Khoác Jean Unisex',
-            'Áo Hoodie Oversize',
-            'Áo Blazer Nữ Thanh Lịch',
-            'Quần Tây Nam Cao Cấp',
-            'Bộ Đồ Thể Thao Nữ',
-            'Bộ Đồ Ngủ Lụa',
-            'Set Đồ Lót Cotton',
-            'Áo Len Cổ Lọ Mùa Đông',
-            'Áo Polo Nam Cao Cấp',
-            'Set Bộ Nữ Thời Trang',
-            'Đầm Công Sở Thanh Lịch',
-            'Thắt Lưng Da Nam'
+        // Get all categories
+        $categories = Category::all();
+
+        if ($categories->isEmpty()) {
+            return;
+        }
+
+        // Ensure category_id = 1 exists
+        $categoryOne = Category::find(1);
+        if (!$categoryOne) {
+            return;
+        }
+
+        // Base product types
+        $baseProducts = [
+            'Áo Thun', 'Áo Sơ Mi', 'Quần Jeans', 'Quần Short',
+            'Váy', 'Đầm', 'Áo Khoác', 'Áo Hoodie',
+            'Áo Blazer', 'Quần Tây', 'Áo Len', 'Áo Polo',
+            'Set Bộ', 'Đồ Thể Thao', 'Đồ Ngủ',
+            'Áo Tanktop', 'Áo Cardigan', 'Quần Jogger',
+            'Chân Váy', 'Áo Croptop'
         ];
 
-        $allCategories = Category::all();
+        $adjectives = [
+            'Basic', 'Cao Cấp', 'Premium', 'Slim Fit',
+            'Oversize', 'Form Rộng', 'Hàn Quốc', 'Unisex',
+            'Vintage', 'Hiện Đại', 'Thanh Lịch',
+            'Trẻ Trung', 'Năng Động', 'Thời Trang',
+            'Mùa Hè', 'Mùa Đông'
+        ];
 
-        foreach ($products as $productName) {
+        $materials = [
+            'Cotton', 'Lụa', 'Denim', 'Polyester',
+            'Len', 'Thun Lạnh', 'Kaki', 'Voan'
+        ];
+
+        // Helper function to generate product name
+        $generateName = function ($index) use ($baseProducts, $adjectives, $materials) {
+            $base = collect($baseProducts)->random();
+            $adj = collect($adjectives)->random();
+            $material = collect($materials)->random();
+
+            return "{$base} {$adj} {$material} {$index}";
+        };
+
+        /*
+        |--------------------------------------------------------------------------
+        | 1️⃣ Create 100 products for category_id = 1
+        |--------------------------------------------------------------------------
+        */
+        for ($i = 1; $i <= 100; $i++) {
+
+            $productName = $generateName("C1-{$i}");
             $slug = Str::slug($productName);
 
             Product::firstOrCreate(
-                ['name' => $productName],
+                ['slug' => $slug],
                 [
-                    'slug' => $slug,
-                    'price' => rand(100000, 1000000),
-                    'description' => "Sản phẩm {$productName} chất lượng cao, thời trang hiện đại.",
-                    'category_id' => $allCategories->random()->id,
+                    'name' => $productName,
+                    'price' => rand(150000, 1500000),
+                    'description' => "Sản phẩm {$productName} chất lượng cao.",
+                    'category_id' => 1,
+                    'image' => 'default-product.jpg'
+                ]
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | 2️⃣ Create 100 products for random categories
+        |--------------------------------------------------------------------------
+        */
+        for ($i = 1; $i <= 100; $i++) {
+
+            $productName = $generateName("R-{$i}");
+            $slug = Str::slug($productName);
+
+            Product::firstOrCreate(
+                ['slug' => $slug],
+                [
+                    'name' => $productName,
+                    'price' => rand(150000, 1500000),
+                    'description' => "Sản phẩm {$productName} chất lượng cao.",
+                    'category_id' => $categories->random()->id,
                     'image' => 'default-product.jpg'
                 ]
             );

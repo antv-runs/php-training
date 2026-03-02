@@ -20,7 +20,7 @@ class ProductExportFailedMail extends Mailable
     public function build()
     {
         return $this->subject('Product export failed')
-            ->view('emails.export_failed')
+            ->markdown('emails.export_failed')
             ->with([
                 'user' => $this->user,
                 'error' => $this->errorMessage,
