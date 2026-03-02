@@ -15,6 +15,8 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ProductsExport;
 
 class ExportProductsJob implements ShouldQueue
 {
@@ -206,20 +208,15 @@ class ExportProductsJob implements ShouldQueue
      */
     protected function exportToExcel($products, string $filePath): string
     {
-        // Change extension to xlsx
         $filePath = str_replace('.csv', '.xlsx', $filePath);
 
-        // For now, create CSV and change extension
-        // If you want true Excel support, uncomment the code below after installing maatwebsite/excel
-        // $export = new ProductsExport($products);
-        // Excel::store($export, $filePath, 'public');
+        Excel::store(
+            new ProductsExport($products),
+            $filePath,
+            'public'
+        );
 
-        // Fallback to CSV
-        $csvPath = str_replace('.xlsx', '.csv', $filePath);
-        $this->exportToCsv($products, $csvPath);
-
-        // Return xlsx path (user can use CSV as is)
-        return $csvPath;
+        return $filePath;
     }
 
     /**
