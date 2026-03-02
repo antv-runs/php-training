@@ -12,6 +12,12 @@ use Illuminate\Database\QueryException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\Response;
+
+// custom business exceptions
+use App\Exceptions\BusinessException;
+use App\Exceptions\NotFoundException as AppNotFoundException;
+use App\Exceptions\ValidationException as AppValidationException;
+
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
 class Handler extends ExceptionHandler
@@ -74,11 +80,19 @@ class Handler extends ExceptionHandler
                 ], Response::HTTP_FORBIDDEN);
             }
 
-            // 404 - Model not found
+            // 404 - Model not found (Eloquent)
             if ($e instanceof ModelNotFoundException) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Resource not found',
+                ], Response::HTTP_NOT_FOUND);
+            }
+
+            // 404 - Business not found exception
+            if ($e instanceof AppNotFoundException) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage() ?: 'Resource not found',
                 ], Response::HTTP_NOT_FOUND);
             }
 
@@ -103,6 +117,23 @@ class Handler extends ExceptionHandler
                     'success' => false,
                     'message' => 'Database error',
                 ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+
+            // 400 - Business rule violation
+            if ($e instanceof BusinessException) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            // 422 - custom validation exception (from services)
+            if ($e instanceof AppValidationException) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                    'errors' => $e->getErrors(),
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
             }
 
             // Other HTTP exceptions (405, 429...)

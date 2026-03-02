@@ -2,19 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\OrderRequest;
 use App\Http\Resources\OrderResource;
 use App\Contracts\OrderServiceInterface;
 use App\Jobs\SendOrderCreatedEmail;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
-class OrderController extends Controller
+class OrderController extends BaseController
 {
-    /**
-     * @var OrderServiceInterface
-     */
-    private $orderService;
+    private OrderServiceInterface $orderService;
 
     public function __construct(OrderServiceInterface $orderService)
     {
@@ -39,7 +36,7 @@ class OrderController extends Controller
     {
         $perPage = (int) $request->input('per_page', 15);
         $orders = $this->orderService->getOrdersForUser(auth()->id(), $perPage);
-        return OrderResource::collection($orders)->additional(['message' => 'Orders retrieved successfully']);
+        return $this->success(OrderResource::collection($orders), 'Orders retrieved successfully');
     }
 
     /**
@@ -60,7 +57,7 @@ class OrderController extends Controller
     public function show($id)
     {
         $order = $this->orderService->getOrderForUser($id, auth()->id());
-        return (new OrderResource($order))->additional(['message' => 'Order retrieved successfully']);
+        return $this->success(new OrderResource($order), 'Order retrieved successfully');
     }
 
     /**
@@ -103,6 +100,6 @@ class OrderController extends Controller
         // dispatch a queued job to send confirmation email after the transaction commits
         SendOrderCreatedEmail::dispatch($order)->afterCommit();
 
-        return (new OrderResource($order))->additional(['message' => 'Order created successfully'])->response()->setStatusCode(201);
+        return $this->success(new OrderResource($order), 'Order created successfully', Response::HTTP_CREATED);
     }
 }

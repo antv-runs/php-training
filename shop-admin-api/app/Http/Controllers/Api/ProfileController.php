@@ -2,75 +2,53 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Contracts\ProfileServiceInterface;
-use Illuminate\Http\Request;
+use App\Http\Requests\ProfileRequest;
+use App\Http\Resources\UserResource;
 
-class ProfileController extends Controller
+class ProfileController extends BaseController
 {
-    /**
-     * @var ProfileServiceInterface
-     */
-    private $profileService;
+    private ProfileServiceInterface $profileService;
 
-    /**
-     * Inject ProfileServiceInterface
-     */
     public function __construct(ProfileServiceInterface $profileService)
     {
         $this->profileService = $profileService;
     }
 
     /**
-     * Show the edit profile form.
+     * Return the authenticated user's data
      */
     public function edit()
     {
         $user = auth()->user();
-        return response()->json([
-            'message' => 'Edit profile',
-            'user' => $user
-        ]);
+        return $this->success(new UserResource($user), 'Edit profile');
     }
 
     /**
-     * Update the admin's profile information.
+     * Update the authenticated user's profile.
      */
-    public function update(Request $request)
+    public function update(ProfileRequest $request)
     {
         $user = auth()->user();
+        $validated = $request->validated();
 
-        $validated = $this->profileService->validateProfileData(
-            $request->all(),
-            $user->id
-        );
-
-        // Handle image file
         if ($request->hasFile('profile_image')) {
             $validated['profile_image'] = $request->file('profile_image');
-        } else {
-            unset($validated['profile_image']);
         }
 
-        $result = $this->profileService->updateProfile($user, $validated);
+        $user = $this->profileService->updateProfile($user, $validated);
 
-        return response()->json([
-            'message' => $result['message'],
-            'user' => $result['data'] ?? $user
-        ]);
+        return $this->success(new UserResource($user), 'Profile updated successfully');
     }
 
     /**
-     * Delete the admin's profile image.
+     * Delete the authenticated user's profile image.
      */
     public function deleteImage()
     {
         $user = auth()->user();
-        $result = $this->profileService->deleteProfileImage($user);
+        $user = $this->profileService->deleteProfileImage($user);
 
-        return response()->json([
-            'message' => $result['message'],
-            'user' => $result['data'] ?? $user
-        ]);
+        return $this->success(new UserResource($user), 'Profile image deleted successfully');
     }
 }

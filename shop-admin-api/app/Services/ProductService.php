@@ -143,19 +143,12 @@ class ProductService implements ProductServiceInterface
         $product = Product::withTrashed()->findOrFail($id);
 
         if (!$product->trashed()) {
-            return [
-                'success' => false,
-                'message' => 'Product is not deleted.'
-            ];
+            throw new \App\Exceptions\BusinessException('Product is not deleted.');
         }
 
         $product->restore();
 
-        return [
-            'success' => true,
-            'message' => 'Product restored successfully',
-            'data' => $product
-        ];
+        return $product;
     }
 
     /**

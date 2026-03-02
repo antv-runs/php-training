@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CategoryController extends BaseController
 {
-    private $categoryService;
+    private CategoryServiceInterface $categoryService;
 
     public function __construct(CategoryServiceInterface $categoryService)
     {

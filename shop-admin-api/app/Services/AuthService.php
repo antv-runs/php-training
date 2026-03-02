@@ -37,9 +37,10 @@ class AuthService implements AuthServiceInterface
 
         if (!Auth::attempt($credentials)) {
             Log::warning('AuthService: login failed', ['email' => $credentials['email'] ?? null]);
-            return [];
+            throw new \App\Exceptions\BusinessException('Invalid credentials');
         }
 
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $token = $user->createToken('api-token')->plainTextToken;
 
@@ -51,17 +52,16 @@ class AuthService implements AuthServiceInterface
         ];
     }
 
-    public function logout(Request $request): bool
+    public function logout(Request $request): void
     {
         $user = $request->user();
         if (! $user) {
             Log::warning('AuthService: logout called with no authenticated user');
-            return false;
+            throw new \App\Exceptions\BusinessException('Not authenticated');
         }
 
         $request->user()->currentAccessToken()->delete();
         Log::info('AuthService: logout successful', ['user_id' => $user->id]);
-        return true;
     }
 
     public function me(Request $request)

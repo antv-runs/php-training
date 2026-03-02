@@ -9,6 +9,7 @@ use App\Enums\ItemStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use App\Exceptions\BusinessException;
 
 class UserService implements UserServiceInterface
 {
@@ -100,16 +101,25 @@ class UserService implements UserServiceInterface
     }
 
     /**
-     * Update user
+     * Retrieve a single user by id
      */
-    public function updateUser(User $user, array $data)
+    public function getUser($id)
     {
+        return User::findOrFail($id);
+    }
+
+    /**
+     * Update user by id
+     *
+     * @throws BusinessException when business rules are violated
+     */
+    public function updateUser($id, array $data)
+    {
+        $user = $this->getUser($id);
+
         // Prevent admin from removing their own admin role
         if (Auth::id() === $user->id && ($data['role'] ?? $user->role) !== UserRole::ADMIN->value) {
-            return [
-                'success' => false,
-                'message' => 'You cannot remove your own admin role.'
-            ];
+            throw new BusinessException('You cannot remove your own admin role.');
         }
 
         if (!empty($data['password'])) {
@@ -120,32 +130,26 @@ class UserService implements UserServiceInterface
 
         $user->update($data);
 
-        return [
-            'success' => true,
-            'message' => 'User updated successfully',
-            'data' => $user
-        ];
+        return $user;
     }
 
     /**
-     * Delete user (soft delete)
+     * Delete user (soft delete) by id
+     *
+     * @throws BusinessException
      */
-    public function deleteUser(User $user)
+    public function deleteUser($id)
     {
+        $user = $this->getUser($id);
+
         // Prevent deleting yourself
         if (Auth::id() === $user->id) {
-            return [
-                'success' => false,
-                'message' => 'You cannot delete your own account.'
-            ];
+            throw new BusinessException('You cannot delete your own account.');
         }
 
         $user->delete();
 
-        return [
-            'success' => true,
-            'message' => 'User deleted successfully'
-        ];
+        return true;
     }
 
     /**
@@ -189,19 +193,12 @@ class UserService implements UserServiceInterface
         $user = User::withTrashed()->findOrFail($id);
 
         if (!$user->trashed()) {
-            return [
-                'success' => false,
-                'message' => 'User is not deleted.'
-            ];
+            throw new BusinessException('User is not deleted.');
         }
 
         $user->restore();
 
-        return [
-            'success' => true,
-            'message' => 'User restored successfully',
-            'data' => $user
-        ];
+        return $user;
     }
 
     /**
@@ -211,10 +208,6 @@ class UserService implements UserServiceInterface
     {
         $user = User::withTrashed()->findOrFail($id);
         $user->forceDelete();
-
-        return [
-            'success' => true,
-            'message' => 'User permanently deleted'
-        ];
+        return true;
     }
 }

@@ -10,7 +10,7 @@ interface AuthServiceInterface
 
     public function login(array $credentials): array;
 
-    public function logout(Request $request): bool;
+    public function logout(Request $request): void;
 
     public function me(Request $request);
 }

@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\Storage;
 class ProfileService implements ProfileServiceInterface
 {
     /**
-     * Update user profile
+     * Update user profile information, managing image if present.
+     *
+     * @return \App\Models\User
      */
     public function updateProfile($user, array $data)
     {
@@ -26,15 +28,11 @@ class ProfileService implements ProfileServiceInterface
 
         $user->update($data);
 
-        return [
-            'success' => true,
-            'message' => 'Profile updated successfully!',
-            'data' => $user
-        ];
+        return $user;
     }
 
     /**
-     * Delete user's profile image
+     * Delete user's profile image and return updated user.
      */
     public function deleteProfileImage($user)
     {
@@ -44,22 +42,6 @@ class ProfileService implements ProfileServiceInterface
 
         $user->update(['profile_image' => null]);
 
-        return [
-            'success' => true,
-            'message' => 'Profile image deleted successfully!'
-        ];
-    }
-
-    /**
-     * Validate profile data
-     */
-    public function validateProfileData(array $data, $userId)
-    {
-        return validator($data, [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $userId],
-            'bio' => ['nullable', 'string', 'max:500'],
-            'profile_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
-        ])->validated();
+        return $user;
     }
 }

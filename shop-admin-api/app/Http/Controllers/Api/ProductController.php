@@ -12,8 +12,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ProductController extends BaseController
 {
-    private $productService;
-    private $fileUploadService;
+    private ProductServiceInterface $productService;
+    private FileUploadServiceInterface $fileUploadService;
 
     public function __construct(ProductServiceInterface $productService, FileUploadServiceInterface $fileUploadService)
     {
@@ -232,15 +232,10 @@ class ProductController extends BaseController
      */
     public function restore($id)
     {
-        $result = $this->productService->restoreProduct($id);
-
-        if (!$result['success']) {
-            return response()->json(['message' => $result['message']], 400);
-        }
-
+        $product = $this->productService->restoreProduct($id);
         return $this->success(
-            new ProductResource($result['data']),
-            $result['message']
+            new ProductResource($product),
+            'Product restored successfully'
         );
     }
 
@@ -299,7 +294,7 @@ class ProductController extends BaseController
         $user = auth()->user();
 
         // Dispatch export job
-        $result = $this->productService->exportProducts(
+        $this->productService->exportProducts(
             $user->id,
             [
                 'search' => $data['search'] ?? null,
@@ -309,9 +304,10 @@ class ProductController extends BaseController
             $data['format']
         );
 
-        return response()->json([
-            'message' => 'Export job queued. You will receive an email with the download link shortly.',
-            'format' => $request->input('format'),
-        ], 202);
+        return $this->success(
+            ['format' => $request->input('format')],
+            'Export job queued. You will receive an email with the download link shortly.',
+            Response::HTTP_ACCEPTED
+        );
     }
 }
