@@ -26,6 +26,7 @@ class CategoryController extends BaseController
      *     summary="Category list",
      *     tags={"Categories"},
      *     @OA\Parameter(name="search", in="query", @OA\Schema(type="string")),
+     *     @OA\Parameter(name="page", in="query", @OA\Schema(type="integer")),
      *     @OA\Parameter(name="per_page", in="query", @OA\Schema(type="integer")),
      *     @OA\Response(response=200, description="Success")
      * )
@@ -38,7 +39,6 @@ class CategoryController extends BaseController
             CategoryResource::collection($categories),
             'Categories retrieved successfully'
         );
-        // return CategoryResource::collection($categories)->additional(['message' => 'Products retrieved successfully']);
     }
 
     /**
@@ -173,6 +173,14 @@ class CategoryController extends BaseController
      *     summary="Get soft deleted categories",
      *     tags={"Categories"},
      *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="page", in="query", @OA\Schema(type="integer")),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Number of items per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", example=10)
+     *     ),
      *     @OA\Response(response=200, description="Trashed categories retrieved successfully"),
      *     @OA\Response(response=401, description="Unauthenticated"),
      *     @OA\Response(response=403, description="Forbidden")

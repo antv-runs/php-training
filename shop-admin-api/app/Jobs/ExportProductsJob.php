@@ -11,6 +11,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class ExportProductsJob implements ShouldQueue
 {
@@ -104,7 +105,7 @@ class ExportProductsJob implements ShouldQueue
             }
 
             // Log success
-            \Log::info("Product export completed", [
+            Log::info("Product export completed", [
                 'user_id' => $this->userId,
                 'file' => $filename,
                 'count' => $products->count(),
@@ -112,7 +113,7 @@ class ExportProductsJob implements ShouldQueue
             ]);
 
         } catch (\Exception $e) {
-            \Log::error("Product export failed", [
+            Log::error("Product export failed", [
                 'user_id' => $this->userId,
                 'error' => $e->getMessage(),
             ]);

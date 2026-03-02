@@ -9,12 +9,14 @@ use App\Contracts\ProductServiceInterface;
 use App\Contracts\CategoryServiceInterface;
 use App\Contracts\ProfileServiceInterface;
 use App\Contracts\FileUploadServiceInterface;
+use App\Contracts\OrderServiceInterface;
 use App\Services\UserService;
 use App\Services\AuthService;
 use App\Services\ProductService;
 use App\Services\CategoryService;
 use App\Services\ProfileService;
 use App\Services\FileUploadService;
+use App\Services\OrderService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,7 +34,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(CategoryServiceInterface::class, CategoryService::class);
         $this->app->bind(ProfileServiceInterface::class, ProfileService::class);
         $this->app->bind(FileUploadServiceInterface::class, FileUploadService::class);
-        $this->app->bind(\App\Contracts\OrderServiceInterface::class, \App\Services\OrderService::class);
+        $this->app->bind(OrderServiceInterface::class, OrderService::class);
     }
 
     /**

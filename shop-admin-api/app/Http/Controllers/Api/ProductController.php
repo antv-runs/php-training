@@ -2,33 +2,19 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductRequest;
 use App\Http\Requests\ExportProductRequest;
-use App\Models\Product;
 use App\Http\Resources\ProductResource;
 use App\Contracts\ProductServiceInterface;
 use App\Contracts\FileUploadServiceInterface;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
-class ProductController extends Controller
+class ProductController extends BaseController
 {
-    /**
-     * @var ProductServiceInterface
-     */
     private $productService;
-
-    /**
-     * @var FileUploadServiceInterface
-     */
     private $fileUploadService;
 
-    /**
-     * Inject dependencies
-     *
-     * Dependencies: ProductServiceInterface, FileUploadServiceInterface
-     * Follows Dependency Inversion - depends on abstractions not concretions
-     */
     public function __construct(ProductServiceInterface $productService, FileUploadServiceInterface $fileUploadService)
     {
         $this->productService = $productService;
@@ -45,6 +31,7 @@ class ProductController extends Controller
      *     tags={"Products"},
      *     @OA\Parameter(name="search", in="query", @OA\Schema(type="string")),
      *     @OA\Parameter(name="category_id", in="query", @OA\Schema(type="integer")),
+     *     @OA\Parameter(name="page", in="query", @OA\Schema(type="integer")),
      *     @OA\Parameter(name="per_page", in="query", @OA\Schema(type="integer")),
      *     @OA\Response(response=200, description="Success")
      * )
@@ -53,7 +40,10 @@ class ProductController extends Controller
     {
         $perPage = $request->get('per_page', 15);
         $products = $this->productService->getAllProducts($request, $perPage);
-        return ProductResource::collection($products)->additional(['message' => 'Products retrieved successfully']);
+        return $this->success(
+            ProductResource::collection($products),
+            'Products retrieved successfully'
+        );
     }
 
     /**
@@ -94,12 +84,13 @@ class ProductController extends Controller
             $data['image'] = $this->fileUploadService->uploadProductImage($request->file('image'));
         }
 
-        $result = $this->productService->createProduct($data);
+        $product = $this->productService->createProduct($data);
 
-        return response()->json([
-            'message' => 'Product created successfully',
-            'data' => $result['data'] ?? null
-        ], 201);
+        return $this->success(
+            new ProductResource($product['data']),
+            'Product created successfully',
+            Response::HTTP_CREATED
+        );
     }
 
     /**
@@ -118,7 +109,10 @@ class ProductController extends Controller
     public function show($id)
     {
         $product = $this->productService->getProduct($id);
-        return (new ProductResource($product))->additional(['message' => 'Product retrieved successfully']);
+        return $this->success(
+            new ProductResource($product),
+            'Product retrieved successfully'
+        );
     }
 
     /**
@@ -161,10 +155,10 @@ class ProductController extends Controller
 
         $result = $this->productService->updateProduct($product, $data);
 
-        return response()->json([
-            'message' => 'Product updated successfully',
-            'data' => $result['data'] ?? $product
-        ]);
+        return $this->success(
+            new ProductResource($result['data'] ?? $product),
+            'Product updated successfully'
+        );
     }
 
     /**
@@ -184,11 +178,12 @@ class ProductController extends Controller
      */
     public function destroy($id)
     {
-        $result = $this->productService->deleteProduct($id);
+        $this->productService->deleteProduct($id);
 
-        return response()->json([
-            'message' => 'Product deleted successfully'
-        ]);
+        return $this->success(
+            null,
+            'Product deleted successfully'
+        );
     }
 
     /**
@@ -197,16 +192,27 @@ class ProductController extends Controller
      *     summary="Get trashed products",
      *     tags={"Products"},
      *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="page", in="query", @OA\Schema(type="integer")),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Number of items per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", example=10)
+     *     ),
      *     @OA\Response(response=200, description="Trashed list")
      * )
      */
     public function trashed(Request $request)
     {
-        $products = $this->productService->getTrashed(10);
-        return response()->json([
-            'message' => 'Trashed products retrieved successfully',
-            'data' => $products
-        ]);
+        $perPage = (int) $request->input('per_page', 10);
+
+        $products = $this->productService->getTrashed($perPage);
+
+        return $this->success(
+            $products,
+            'Trashed products retrieved successfully'
+        );
     }
 
     /**
@@ -232,10 +238,10 @@ class ProductController extends Controller
             return response()->json(['message' => $result['message']], 400);
         }
 
-        return response()->json([
-            'message' => $result['message'],
-            'data' => $result['data']
-        ]);
+        return $this->success(
+            new ProductResource($result['data']),
+            $result['message']
+        );
     }
 
     /**
@@ -255,9 +261,11 @@ class ProductController extends Controller
      */
     public function forceDelete($id)
     {
-        $result = $this->productService->forceDeleteProduct($id);
-
-        return response()->json(['message' => $result['message']]);
+        $this->productService->forceDeleteProduct($id);
+        return $this->success(
+            null,
+            'Product permanently deleted'
+        );
     }
 
     /**
@@ -301,6 +309,9 @@ class ProductController extends Controller
             $data['format']
         );
 
-        return response()->json($result, 202);
+        return response()->json([
+            'message' => 'Export job queued. You will receive an email with the download link shortly.',
+            'format' => $request->input('format'),
+        ], 202);
     }
 }

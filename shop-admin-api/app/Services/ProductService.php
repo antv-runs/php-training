@@ -128,7 +128,11 @@ class ProductService implements ProductServiceInterface
      */
     public function getTrashed($perPage = 10)
     {
-        return Product::onlyTrashed()->with('category')->latest('deleted_at')->paginate($perPage);
+        return Product::query()
+            ->onlyTrashed()
+            ->with('category')
+            ->latest('deleted_at')
+            ->paginate($perPage);
     }
 
     /**
@@ -160,21 +164,24 @@ class ProductService implements ProductServiceInterface
     public function forceDeleteProduct($id)
     {
         $product = Product::withTrashed()->findOrFail($id);
-        // delete image file if exists
-        if ($product->image) {
-            try {
-                Storage::disk('public')->delete($product->image);
-            } catch (\Throwable $e) {
-                // ignore
-            }
-        }
+
+        $this->deleteProductImage($product);
 
         $product->forceDelete();
+    }
 
-        return [
-            'success' => true,
-            'message' => 'Product permanently deleted'
-        ];
+    /**
+     * Export products to CSV/Excel via queue
+     * Dispatches a job to the queue for async processing
+     *
+     * @param int $userId User who requested the export
+     * @param array $filters Filter parameters (search, category_id, status)
+     * @param string $format Export format: 'csv' or 'excel'
+     * @return array
+     */
+    public function exportProducts(int $userId, array $filters = [], string $format = 'csv'): void
+    {
+        ExportProductsJob::dispatch($userId, $filters, $format);
     }
 
     /**
@@ -203,23 +210,16 @@ class ProductService implements ProductServiceInterface
     }
 
     /**
-     * Export products to CSV/Excel via queue
-     * Dispatches a job to the queue for async processing
-     * 
-     * @param int $userId User who requested the export
-     * @param array $filters Filter parameters (search, category_id, status)
-     * @param string $format Export format: 'csv' or 'excel'
-     * @return array
+     * Delete product image from storage if exists.
      */
-    public function exportProducts(int $userId, array $filters = [], string $format = 'csv')
+    private function deleteProductImage(Product $product): void
     {
-        // Dispatch the job to the queue
-        ExportProductsJob::dispatch($userId, $filters, $format);
+        if (!$product->image) {
+            return;
+        }
 
-        return [
-            'success' => true,
-            'message' => 'Export job queued. You will receive an email with the download link shortly.',
-            'format' => $format,
-        ];
+        if (Storage::disk('public')->exists($product->image)) {
+            Storage::disk('public')->delete($product->image);
+        }
     }
 }

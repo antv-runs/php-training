@@ -226,6 +226,13 @@
                         }
                     },
                     {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
                         "name": "per_page",
                         "in": "query",
                         "schema": {
@@ -411,6 +418,25 @@
                 "summary": "Get soft deleted categories",
                 "description": "Get trashed categories.",
                 "operationId": "f384cb25ac4c41a40ccd857ebff0febd",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Number of items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Trashed categories retrieved successfully"
@@ -647,6 +673,13 @@
                         }
                     },
                     {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
                         "name": "per_page",
                         "in": "query",
                         "schema": {
@@ -834,6 +867,25 @@
                 ],
                 "summary": "Get trashed products",
                 "operationId": "e038afe43fc15f1175feac875ff8ed9f",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Number of items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Trashed list"
