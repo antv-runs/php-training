@@ -8,22 +8,17 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class SendOrderCreatedEmail implements ShouldQueue
 {
     use Dispatchable, Queueable, SerializesModels;
 
-    /**
-     * @var Order
-     */
-    public $order;
+    public int $tries = 3;
+    public int $timeout = 30;
+    public Order $order;
 
-    /**
-     * Create a new job instance.
-     *
-     * @param Order $order
-     */
     public function __construct(Order $order)
     {
         // serialize order for the queue (the model will be re‑hydrated automatically)
@@ -37,10 +32,47 @@ class SendOrderCreatedEmail implements ShouldQueue
      */
     public function handle()
     {
-        // make sure we have the associated user email available
-        $user = $this->order->user ?? null;
-        if ($user && $user->email) {
-            Mail::to($user->email)->send(new OrderCreated($this->order));
+        $user = $this->order->user;
+
+        if (! $user || ! $user->email) {
+            Log::warning('Order email not sent: suer or email missing', [
+                'order_id' => $this->order->id,
+            ]);
+
+            return;
         }
+
+        Mail::to($user->email)
+            ->send(new OrderCreated($this->order));
+
+        Log::info('Order created email sent successfully', [
+            'order_id' => $this->order->id,
+            'user_id' => $user->id,
+        ]);
+    }
+
+    /**
+     * Define retry delays (in seconds) for each attempt.
+     *
+     * Attempt #1 retry after 10 seconds
+     * Attempt #2 retry after 30 seconds
+     * Attempt #3 retry after 60 seconds
+     *
+     * Purpose:
+     * - Prevent immediate retry spam
+     * - Give SMTP server time to recover
+     * - Reduce risk of hitting rate limits
+     */
+    public function backoff()
+    {
+        return [10, 30, 60];
+    }
+
+    public function failed(\Throwable $exception)
+    {
+        Log::error('Order created email failed permanently', [
+            'order_id' => $this->order->id,
+            'error' => $exception->getMessage(),
+        ]);
     }
 }

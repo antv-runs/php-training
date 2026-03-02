@@ -17,28 +17,10 @@ class ExportProductsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * @var int User ID who requested the export
-     */
-    public $userId;
+    public int $userId;
+    public array $filters;
+    public string $format;
 
-    /**
-     * @var array Filter parameters
-     */
-    public $filters;
-
-    /**
-     * @var string Export format: 'csv' or 'excel'
-     */
-    public $format;
-
-    /**
-     * Create a new job instance.
-     *
-     * @param int $userId
-     * @param array $filters
-     * @param string $format
-     */
     public function __construct(int $userId, array $filters = [], string $format = 'csv')
     {
         $this->userId = $userId;
