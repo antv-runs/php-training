@@ -2,6 +2,9 @@
 
 namespace App\Jobs;
 
+use App\Mail\ProductExportFailedMail;
+use App\Mail\ProductExportNoDataMail;
+use App\Mail\ProductExportReadyMail;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
@@ -63,6 +66,11 @@ class ExportProductsJob implements ShouldQueue
             // Get all matching products
             $products = $query->latest('id')->get();
 
+            if ($products->isEmpty()) {
+                $this->notifyNoData();
+                return;
+            }
+
             // Generate file
             $filename = $this->generateFileName();
             $filePath = $this->exportToFile($products, $filename);
@@ -74,16 +82,14 @@ class ExportProductsJob implements ShouldQueue
             $user = User::find($this->userId);
             if ($user && $user->email) {
                 // Send email with download link
-                Mail::send('emails.export_ready', [
-                    'user' => $user,
-                    'downloadUrl' => $fileUrl,
-                    'filename' => $filename,
-                    'format' => strtoupper($this->format),
-                    'productCount' => $products->count(),
-                ], function ($message) use ($user) {
-                    $message->to($user->email)
-                        ->subject('Your Product Export is Ready');
-                });
+                Mail::to($user->email)
+                    ->send(new ProductExportReadyMail(
+                        user: $user,
+                        downloadUrl: $fileUrl,
+                        filename: $filename,
+                        format: $this->format,
+                        productCount: $products->count(),
+                    ));
             }
 
             // Log success
@@ -103,17 +109,24 @@ class ExportProductsJob implements ShouldQueue
             // Notify user of failure
             $user = User::find($this->userId);
             if ($user && $user->email) {
-                Mail::send('emails.export_failed', [
-                    'user' => $user,
-                    'error' => $e->getMessage(),
-                ], function ($message) use ($user) {
-                    $message->to($user->email)
-                        ->subject('Product Export Failed');
-                });
+                Mail::to($user->email)
+                    ->send(new ProductExportFailedMail(
+                        user: $user,
+                        errorMessage: $e->getMessage(),
+                    ));
             }
 
             throw $e;
         }
+    }
+
+    public function failed(\Throwable $exception): void
+    {
+        Log::error('ExportProductsJob permanently failed', [
+            'user_id' => $this->userId,
+            'error' => $exception->getMessage(),
+            'trace' => $exception->getTraceAsString(),
+        ]);
     }
 
     /**
@@ -218,5 +231,24 @@ class ExportProductsJob implements ShouldQueue
         $extension = $this->format === 'excel' ? 'xlsx' : 'csv';
 
         return "products_export_{$timestamp}.{$extension}";
+    }
+
+    protected function notifyNoData(): void
+    {
+        $user = User::find($this->userId);
+
+        if ($user && $user->email) {
+            Mail::to($user->email)
+                ->send(new ProductExportNoDataMail(
+                    user: $user,
+                    format: $this->format
+                ));
+        }
+
+        Log::info('Product export returned empty result', [
+            'user_id' => $this->userId,
+            'filters' => $this->filters,
+            'format' => $this->format,
+        ]);
     }
 }
