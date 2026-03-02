@@ -59,29 +59,6 @@
                     >
                 </div>
 
-                <!-- Remember + Forgot -->
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <input
-                            id="remember"
-                            type="checkbox"
-                            name="remember"
-                            class="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300
-                                   dark:bg-gray-700 dark:border-gray-600"
-                        >
-                        <label for="remember" class="ml-2 text-sm text-gray-500 dark:text-gray-300">
-                            Remember me
-                        </label>
-                    </div>
-
-                    @if (Route::has('password.request'))
-                        <a href="{{ route('password.request') }}"
-                           class="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400">
-                            Forgot password?
-                        </a>
-                    @endif
-                </div>
-
                 <!-- Button -->
                 <button
                     type="submit"
