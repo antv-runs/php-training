@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\OrderRequest;
 use App\Http\Resources\OrderResource;
 use App\Contracts\OrderServiceInterface;
+use App\Jobs\SendOrderCreatedEmail;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -98,6 +99,9 @@ class OrderController extends Controller
         $data['user_id'] = auth()->id();
 
         $order = $this->orderService->createOrder($data);
+
+        // dispatch a queued job to send confirmation email after the transaction commits
+        SendOrderCreatedEmail::dispatch($order)->afterCommit();
 
         return (new OrderResource($order))->additional(['message' => 'Order created successfully'])->response()->setStatusCode(201);
     }

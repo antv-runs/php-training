@@ -63,7 +63,7 @@ class AuthController extends BaseController
      *         @OA\MediaType(
      *             mediaType="application/json",
      *             @OA\Schema(
-     *                 @OA\Property(property="email", type="string", format="email", example="admin@example.com"),
+     *                 @OA\Property(property="email", type="string", format="email", example="uter.vanan@gmail.com"),
      *                 @OA\Property(property="password", type="string", format="password", example="password")
      *             )
      *         )
@@ -75,7 +75,7 @@ class AuthController extends BaseController
     public function login(LoginRequest $request)
     {
         try {
-            $credentials = $request->validated();;
+            $credentials = $request->validated();
             $result = $this->authService->login($credentials);
 
             if (empty($result)) {

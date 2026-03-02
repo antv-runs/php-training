@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductRequest;
+use App\Http\Requests\ExportProductRequest;
 use App\Models\Product;
 use App\Http\Resources\ProductResource;
 use App\Contracts\ProductServiceInterface;
@@ -257,5 +258,49 @@ class ProductController extends Controller
         $result = $this->productService->forceDeleteProduct($id);
 
         return response()->json(['message' => $result['message']]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/products/export",
+     *     summary="Export products to CSV/Excel",
+     *     tags={"Products"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 required={"format"},
+     *                 @OA\Property(property="format", type="string", enum={"csv", "excel"}, description="Export format"),
+     *                 @OA\Property(property="search", type="string", description="Search term"),
+     *                 @OA\Property(property="category_id", type="integer", description="Filter by category"),
+     *                 @OA\Property(property="status", type="string", enum={"active", "deleted", "all"}, description="Filter by status")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=202, description="Export job queued"),
+     *     @OA\Response(response=422, description="Validation failed")
+     * )
+     */
+    public function export(ExportProductRequest $request)
+    {
+        $data = $request->validated();
+
+        // Get current authenticated user
+        $user = auth()->user();
+
+        // Dispatch export job
+        $result = $this->productService->exportProducts(
+            $user->id,
+            [
+                'search' => $data['search'] ?? null,
+                'category_id' => $data['category_id'] ?? null,
+                'status' => $data['status'] ?? 'active',
+            ],
+            $data['format']
+        );
+
+        return response()->json($result, 202);
     }
 }

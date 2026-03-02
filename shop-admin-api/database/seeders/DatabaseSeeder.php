@@ -22,10 +22,10 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         // Create default admin
-        if (!User::where('email', 'admin@example.com')->exists()) {
+        if (!User::where('email', 'uter.vanan@gmail.com')->exists()) {
             User::create([
                 'name' => 'Admin',
-                'email' => 'admin@example.com',
+                'email' => 'uter.vanan@gmail.com',
                 'password' => Hash::make('password'),
                 'role' => 'admin',
             ]);

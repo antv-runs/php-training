@@ -62,3 +62,29 @@ Notes
 	- admin@example.com / password (admin)
 	- user1@example.com / password (user)
 	- user2@example.com / password (user)
+
+## 📧 Queue & Email setup
+
+This project now uses Laravel's queue system to send order confirmation emails asynchronously.
+
+1. Set the connection in `.env`:
+   ```dotenv
+   QUEUE_CONNECTION=database
+   MAIL_MAILER=log   # or smtp/other depending on your environment
+   ```
+2. Publish the queue tables and run migrations:
+   ```bash
+   php artisan migrate
+   # if you haven't already created the jobs/failed_jobs tables:
+   # php artisan queue:table && php artisan queue:failed-table && php artisan migrate
+   ```
+3. Start a worker in development (in another terminal):
+   ```bash
+   php artisan queue:work --tries=3
+   ```
+   The worker will pick up `SendOrderCreatedEmail` jobs and dispatch them to the mailer.
+
+4. You can test the queue behaviour in automated tests (see `tests/Feature/OrderTest.php`).
+
+> When QUEUE_CONNECTION is `sync` (the default), jobs run immediately, which is fine for simple local testing but defeats the purpose of background processing.
+

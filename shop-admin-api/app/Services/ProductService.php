@@ -6,6 +6,7 @@ use App\Contracts\ProductServiceInterface;
 use App\Models\Product;
 use App\Models\Category;
 use App\Enums\ItemStatus;
+use App\Jobs\ExportProductsJob;
 use Illuminate\Support\Facades\Storage;
 
 class ProductService implements ProductServiceInterface
@@ -199,5 +200,26 @@ class ProductService implements ProductServiceInterface
         }
 
         return $slug;
+    }
+
+    /**
+     * Export products to CSV/Excel via queue
+     * Dispatches a job to the queue for async processing
+     * 
+     * @param int $userId User who requested the export
+     * @param array $filters Filter parameters (search, category_id, status)
+     * @param string $format Export format: 'csv' or 'excel'
+     * @return array
+     */
+    public function exportProducts(int $userId, array $filters = [], string $format = 'csv')
+    {
+        // Dispatch the job to the queue
+        ExportProductsJob::dispatch($userId, $filters, $format);
+
+        return [
+            'success' => true,
+            'message' => 'Export job queued. You will receive an email with the download link shortly.',
+            'format' => $format,
+        ];
     }
 }

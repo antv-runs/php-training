@@ -67,6 +67,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/products', [ProductController::class, 'store']);
         Route::patch('/products/{id}', [ProductController::class, 'update']);
         Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+        Route::post('/products/export', [ProductController::class, 'export']);
 
         // Soft delete for products
         Route::get('/products/trashed', [ProductController::class, 'trashed']);

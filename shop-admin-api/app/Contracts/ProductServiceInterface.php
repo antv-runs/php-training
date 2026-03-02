@@ -50,4 +50,9 @@ interface ProductServiceInterface
      * Force delete product
      */
     public function forceDeleteProduct($id);
+
+    /**
+     * Export products to CSV/Excel via queue
+     */
+    public function exportProducts(int $userId, array $filters = [], string $format = 'csv');
 }

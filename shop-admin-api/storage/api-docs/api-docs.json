@@ -72,7 +72,7 @@
                                     "email": {
                                         "type": "string",
                                         "format": "email",
-                                        "example": "admin@example.com"
+                                        "example": "uter.vanan@gmail.com"
                                     },
                                     "password": {
                                         "type": "string",
@@ -895,6 +895,68 @@
                 "responses": {
                     "200": {
                         "description": "Product permanently deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/products/export": {
+            "post": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Export products to CSV/Excel",
+                "operationId": "b6a3046ece52a345b44bcc4326a687b6",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "format"
+                                ],
+                                "properties": {
+                                    "format": {
+                                        "description": "Export format",
+                                        "type": "string",
+                                        "enum": [
+                                            "csv",
+                                            "excel"
+                                        ]
+                                    },
+                                    "search": {
+                                        "description": "Search term",
+                                        "type": "string"
+                                    },
+                                    "category_id": {
+                                        "description": "Filter by category",
+                                        "type": "integer"
+                                    },
+                                    "status": {
+                                        "description": "Filter by status",
+                                        "type": "string",
+                                        "enum": [
+                                            "active",
+                                            "deleted",
+                                            "all"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "202": {
+                        "description": "Export job queued"
+                    },
+                    "422": {
+                        "description": "Validation failed"
                     }
                 },
                 "security": [
