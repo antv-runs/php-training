@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Contracts\AuthServiceInterface;
+use App\Http\Resources\UserResource;
 
 class AuthService implements AuthServiceInterface
 {
@@ -47,7 +48,7 @@ class AuthService implements AuthServiceInterface
         Log::info('AuthService: login successful', ['user_id' => $user->id]);
 
         return [
-            'user' => $user,
+            'user' => new UserResource($user),
             'token' => $token,
         ];
     }

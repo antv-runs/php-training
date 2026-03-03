@@ -18,26 +18,43 @@ class AuthController extends BaseController
         $this->authService = $authService;
     }
 
-    // Register
     /**
      * @OA\Post(
      *     path="/api/auth/register",
      *     summary="User registration",
+     *     description="Register a new user account with email and password (validation: name required max:255, email required unique, password required min:8 confirmed)",
      *     tags={"Auth"},
      *     @OA\RequestBody(
      *         required=true,
+     *         description="Registration credentials per RegisterRequest validation",
      *         @OA\MediaType(
      *             mediaType="application/json",
      *             @OA\Schema(
-     *                 @OA\Property(property="name", type="string", example="Nguyen Van A"),
-     *                 @OA\Property(property="email", type="string", example="vana@example.com"),
-     *                 @OA\Property(property="password", type="string", example="12345678"),
-     *                 @OA\Property(property="password_confirmation", type="string", example="12345678")
+     *                 required={"name","email","password","password_confirmation"},
+     *                 @OA\Property(property="name", type="string", example="John Doe", minLength=1, maxLength=255),
+     *                 @OA\Property(property="email", type="string", format="email", example="john@example.com"),
+     *                 @OA\Property(property="password", type="string", format="password", example="password123", minLength=8, description="Password must be at least 8 characters"),
+     *                 @OA\Property(property="password_confirmation", type="string", format="password", example="password123", description="Must match password field")
      *             )
      *         )
      *     ),
-     *     @OA\Response(response=201, description="Created"),
-     *     @OA\Response(response=422, description="Validation error")
+     *     @OA\Response(
+     *         response=201,
+     *         description="User registered successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Register successfully"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="user", ref="#/components/schemas/User"),
+     *                 @OA\Property(property="token", type="string")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error: invalid email, password too short, email already exists, or passwords don't match",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
      * )
      */
     public function register(RegisterRequest $request)
@@ -50,19 +67,42 @@ class AuthController extends BaseController
      * @OA\Post(
      *     path="/api/auth/login",
      *     summary="User login",
+     *     description="Authenticate user with email and password to receive JWT token (validation: email required valid format, password required min:8)",
      *     tags={"Auth"},
      *     @OA\RequestBody(
      *         required=true,
+     *         description="Login credentials per LoginRequest validation",
      *         @OA\MediaType(
      *             mediaType="application/json",
      *             @OA\Schema(
-     *                 @OA\Property(property="email", type="string", format="email", example="uter.vanan@gmail.com"),
-     *                 @OA\Property(property="password", type="string", format="password", example="password")
+     *                 required={"email","password"},
+     *                 @OA\Property(property="email", type="string", format="email", example="john@example.com"),
+     *                 @OA\Property(property="password", type="string", format="password", example="password123", minLength=8)
      *             )
      *         )
      *     ),
-     *     @OA\Response(response=200, description="Success"),
-     *     @OA\Response(response=401, description="Unauthorized")
+     *     @OA\Response(
+     *         response=200,
+     *         description="Login successful",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Login successfully"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="user", ref="#/components/schemas/User"),
+     *                 @OA\Property(property="token", type="string")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error: invalid email format or password too short",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Invalid credentials",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
      * )
      */
     public function login(LoginRequest $request)
@@ -121,13 +161,8 @@ class AuthController extends BaseController
      *         description="User info",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="id", type="integer", example=1),
-     *                 @OA\Property(property="name", type="string", example="An Van"),
-     *                 @OA\Property(property="email", type="string", example="an@example.com")
-     *             )
+     *             @OA\Property(property="message", type="string", example="User info retrieved"),
+     *             @OA\Property(property="user", ref="#/components/schemas/User")
      *         )
      *     ),
      *

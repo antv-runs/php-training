@@ -19,16 +19,22 @@ class OrderController extends BaseController
     }
 
     /**
-     * List orders belonging to authenticated user
-     */
-    /**
      * @OA\Get(
      *     path="/api/orders",
      *     summary="List orders belonging to authenticated user",
+     *     description="Retrieve paginated list of orders for the authenticated user",
      *     tags={"Orders"},
      *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(name="per_page", in="query", @OA\Schema(type="integer")),
-     *     @OA\Response(response=200, description="Order list returned successfully"),
+     *     @OA\Parameter(name="per_page", in="query", description="Items per page (default: 15)", @OA\Schema(type="integer", minimum=1)),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Orders retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Order"))
+     *         )
+     *     ),
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */
@@ -40,18 +46,24 @@ class OrderController extends BaseController
     }
 
     /**
-     * Show detail of a specific order belonging to authenticated user
-     */
-    /**
      * @OA\Get(
      *     path="/api/orders/{id}",
-     *     summary="Get details of an order",
+     *     summary="Get order details",
+     *     description="Retrieve details of a specific order belonging to the authenticated user",
      *     tags={"Orders"},
      *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\Response(response=200, description="Order details returned"),
+     *     @OA\Parameter(name="id", in="path", required=true, description="Order ID", @OA\Schema(type="integer")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Order details retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", ref="#/components/schemas/Order")
+     *         )
+     *     ),
      *     @OA\Response(response=401, description="Unauthenticated"),
-     *     @OA\Response(response=404, description="Not found or not belong to user")
+     *     @OA\Response(response=404, description="Order not found or does not belong to user")
      * )
      */
     public function show($id)
@@ -61,32 +73,43 @@ class OrderController extends BaseController
     }
 
     /**
-     * Create a new order
-     *
      * @OA\Post(
      *     path="/api/orders",
-     *     summary="Create order",
+     *     summary="Create a new order",
+     *     description="Create a new order for authenticated user with items array. Requires items array with min:1, each item requires product_id (must exist) and quantity (min:1)",
      *     tags={"Orders"},
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\MediaType(
-     *             mediaType="application/json",
-     *             @OA\Schema(
-     *                 required={"items"},
-     *                 @OA\Property(
-     *                     property="items",
-     *                     type="array",
-     *                     @OA\Items(
-     *                         @OA\Property(property="product_id", type="integer"),
-     *                         @OA\Property(property="quantity", type="integer")
-     *                     )
+     *         @OA\JsonContent(
+     *             required={"items"},
+     *             @OA\Property(
+     *                 property="items",
+     *                 type="array",
+     *                 minItems=1,
+     *                 example={{"product_id": 1, "quantity": 2}},
+     *                 @OA\Items(
+     *                     required={"product_id", "quantity"},
+     *                     @OA\Property(property="product_id", type="integer", description="Valid product ID that exists in database"),
+     *                     @OA\Property(property="quantity", type="integer", minimum=1, description="Quantity of item ordered")
      *                 )
      *             )
      *         )
      *     ),
-     *     @OA\Response(response=201, description="Order created successfully"),
-     *     @OA\Response(response=400, description="Invalid data"),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Order created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", ref="#/components/schemas/Order")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation failed",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */

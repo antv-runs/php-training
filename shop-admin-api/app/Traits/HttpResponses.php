@@ -17,12 +17,20 @@ trait HttpResponses
             ]);
         }
 
-        // Case 2: Single object or simple data
-        return response()->json([
+        $response = [
             'success' => true,
-            'message' => $message,
-            'data'    => $data,
-        ]);
+        ];
+
+        if (!is_null($message)) {
+            $response['message'] = $message;
+        }
+
+        if (!is_null($data)) {
+            $response['data'] = $data;
+        }
+
+        // Case 2: Single object or simple data
+        return response()->json($response, $code);
     }
 
     protected function error(string $message = null, int $code = Response::HTTP_BAD_REQUEST, $errors = null)

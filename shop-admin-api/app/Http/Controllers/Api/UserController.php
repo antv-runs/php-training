@@ -11,14 +11,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends BaseController
 {
-    /**
-     * @var UserServiceInterface
-     */
-    private $userService;
+    private UserServiceInterface $userService;
 
-    /**
-     * Inject UserServiceInterface
-     */
     public function __construct(UserServiceInterface $userService)
     {
         $this->userService = $userService;
@@ -27,25 +21,23 @@ class UserController extends BaseController
     /**
      * @OA\Get(
      *     path="/api/users",
-     *     summary="Get user list",
+     *     summary="List all users",
+     *     description="Get paginated list of users with optional search (Admin only)",
      *     tags={"Users"},
      *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="search",
-     *         in="query",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Parameter(
-     *         name="per_page",
-     *         in="query",
-     *         @OA\Schema(type="integer", example=10)
-     *     ),
+     *     @OA\Parameter(name="search", in="query", description="Search by name or email", @OA\Schema(type="string")),
+     *     @OA\Parameter(name="per_page", in="query", description="Items per page", @OA\Schema(type="integer", example=10)),
      *     @OA\Response(
      *         response=200,
-     *         description="User list retrieved successfully"
+     *         description="User list retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/User"))
+     *         )
      *     ),
      *     @OA\Response(response=401, description="Unauthenticated"),
-     *     @OA\Response(response=403, description="Forbidden")
+     *     @OA\Response(response=403, description="Admin access required")
      * )
      */
     public function index(Request $request)
@@ -58,22 +50,32 @@ class UserController extends BaseController
      * @OA\Post(
      *     path="/api/users",
      *     summary="Create new user",
+     *     description="Create a new user (Admin only). Validation: name required max:255, email required unique, password required min:6 confirmed, role required in:admin,user",
      *     tags={"Users"},
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
+     *         description="User data per UserRequest validation",
      *         @OA\JsonContent(
-     *             required={"name","email","password"},
-     *             @OA\Property(property="name", type="string", example="John Doe"),
-     *             @OA\Property(property="email", type="string", example="john@example.com"),
-     *             @OA\Property(property="password", type="string", example="12345678"),
-     *             @OA\Property(property="is_admin", type="boolean", example=false)
+     *             required={"name","email","password","role"},
+     *             @OA\Property(property="name", type="string", example="John Doe", maxLength=255),
+     *             @OA\Property(property="email", type="string", format="email", example="john@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="password123", minLength=6),
+     *             @OA\Property(property="role", type="string", enum={"admin","user"}, example="user")
      *         )
      *     ),
-     *     @OA\Response(response=201, description="User created successfully"),
-     *     @OA\Response(response=400, description="Bad request"),
+     *     @OA\Response(
+     *         response=201,
+     *         description="User created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", ref="#/components/schemas/User")
+     *         )
+     *     ),
      *     @OA\Response(response=401, description="Unauthenticated"),
-     *     @OA\Response(response=403, description="Forbidden")
+     *     @OA\Response(response=403, description="Admin access required"),
+     *     @OA\Response(response=422, description="Validation error")
      * )
      */
     public function store(UserRequest $request)
@@ -88,18 +90,22 @@ class UserController extends BaseController
      * @OA\Get(
      *     path="/api/users/{id}",
      *     summary="Get user detail",
+     *     description="Get a single user's information (Admin only)",
      *     tags={"Users"},
      *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         description="User ID",
-     *         @OA\Schema(type="integer", example=1)
+     *     @OA\Parameter(name="id", in="path", required=true, description="User ID", @OA\Schema(type="integer", example=1)),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", ref="#/components/schemas/User")
+     *         )
      *     ),
-     *     @OA\Response(response=200, description="User retrieved successfully"),
-     *     @OA\Response(response=404, description="User not found"),
-     *     @OA\Response(response=401, description="Unauthenticated")
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Admin access required"),
+     *     @OA\Response(response=404, description="User not found")
      * )
      */
     public function show($id)
@@ -112,26 +118,34 @@ class UserController extends BaseController
      * @OA\Patch(
      *     path="/api/users/{id}",
      *     summary="Update user",
+     *     description="Update user information (Admin only). Validation: email unique except current, password optional min:6",
      *     tags={"Users"},
      *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
+     *     @OA\Parameter(name="id", in="path", required=true, description="User ID", @OA\Schema(type="integer")),
      *     @OA\RequestBody(
      *         required=true,
+     *         description="User data per UserRequest validation",
      *         @OA\JsonContent(
-     *             @OA\Property(property="name", type="string", example="Updated Name"),
-     *             @OA\Property(property="email", type="string", example="updated@example.com"),
-     *             @OA\Property(property="password", type="string", example="newpassword"),
-     *             @OA\Property(property="is_admin", type="boolean", example=true)
+     *             required={"name","email","role"},
+     *             @OA\Property(property="name", type="string", example="Updated Name", maxLength=255),
+     *             @OA\Property(property="email", type="string", format="email", example="updated@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="newpassword123", minLength=6, description="Optional, only provided if changing password"),
+     *             @OA\Property(property="role", type="string", enum={"admin","user"}, example="admin")
      *         )
      *     ),
-     *     @OA\Response(response=200, description="User updated successfully"),
-     *     @OA\Response(response=403, description="Forbidden"),
-     *     @OA\Response(response=401, description="Unauthenticated")
+     *     @OA\Response(
+     *         response=200,
+     *         description="User updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", ref="#/components/schemas/User")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Admin access required"),
+     *     @OA\Response(response=404, description="User not found"),
+     *     @OA\Response(response=422, description="Validation error")
      * )
      */
     public function update(UserRequest $request, $id)
@@ -145,17 +159,21 @@ class UserController extends BaseController
      * @OA\Delete(
      *     path="/api/users/{id}",
      *     summary="Soft delete user",
+     *     description="Soft delete a user (Admin only)",
      *     tags={"Users"},
      *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer")
+     *     @OA\Parameter(name="id", in="path", required=true, description="User ID", @OA\Schema(type="integer")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User deleted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string")
+     *         )
      *     ),
-     *     @OA\Response(response=200, description="User deleted successfully"),
-     *     @OA\Response(response=403, description="Forbidden"),
-     *     @OA\Response(response=401, description="Unauthenticated")
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Admin access required"),
+     *     @OA\Response(response=404, description="User not found")
      * )
      */
     public function destroy($id)
@@ -168,11 +186,20 @@ class UserController extends BaseController
      * @OA\Get(
      *     path="/api/users/trashed",
      *     summary="Get soft deleted users",
+     *     description="Get soft deleted users (Admin only)",
      *     tags={"Users"},
      *     security={{"bearerAuth":{}}},
-     *     @OA\Response(response=200, description="Trashed users retrieved successfully"),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Trashed users retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/User"))
+     *         )
+     *     ),
      *     @OA\Response(response=401, description="Unauthenticated"),
-     *     @OA\Response(response=403, description="Forbidden")
+     *     @OA\Response(response=403, description="Admin access required")
      * )
      */
     public function trashed(Request $request)
@@ -184,19 +211,23 @@ class UserController extends BaseController
     /**
      * @OA\Patch(
      *     path="/api/users/{id}/restore",
-     *     summary="Restore user",
+     *     summary="Restore soft deleted user",
+     *     description="Restore a soft deleted user (Admin only)",
      *     tags={"Users"},
      *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer")
+     *     @OA\Parameter(name="id", in="path", required=true, description="User ID", @OA\Schema(type="integer")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User restored successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", ref="#/components/schemas/User")
+     *         )
      *     ),
-     *     @OA\Response(response=200, description="User restored successfully"),
-     *     @OA\Response(response=400, description="Restore failed"),
      *     @OA\Response(response=401, description="Unauthenticated"),
-     *     @OA\Response(response=403, description="Forbidden")
+     *     @OA\Response(response=403, description="Admin access required"),
+     *     @OA\Response(response=404, description="User not found")
      * )
      */
     public function restore($id)
@@ -209,17 +240,21 @@ class UserController extends BaseController
     * @OA\Delete(
     *     path="/api/users/{id}/force-delete",
     *     summary="Permanently delete user",
+    *     description="Permanently delete a user from database (Admin only)",
     *     tags={"Users"},
     *     security={{"bearerAuth":{}}},
-    *     @OA\Parameter(
-    *         name="id",
-    *         in="path",
-    *         required=true,
-    *         @OA\Schema(type="integer")
+    *     @OA\Parameter(name="id", in="path", required=true, description="User ID", @OA\Schema(type="integer")),
+    *     @OA\Response(
+    *         response=200,
+    *         description="User permanently deleted",
+    *         @OA\JsonContent(
+    *             @OA\Property(property="success", type="boolean", example=true),
+    *             @OA\Property(property="message", type="string")
+    *         )
     *     ),
-    *     @OA\Response(response=200, description="User permanently deleted"),
     *     @OA\Response(response=401, description="Unauthenticated"),
-    *     @OA\Response(response=403, description="Forbidden")
+    *     @OA\Response(response=403, description="Admin access required"),
+    *     @OA\Response(response=404, description="User not found")
     * )
     */
     public function forceDelete($id)

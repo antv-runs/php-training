@@ -17,11 +17,13 @@ use Symfony\Component\HttpFoundation\Response;
 use App\Exceptions\BusinessException;
 use App\Exceptions\NotFoundException as AppNotFoundException;
 use App\Exceptions\ValidationException as AppValidationException;
-
+use App\Traits\HttpResponses;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
 class Handler extends ExceptionHandler
 {
+    use HttpResponses;
+
     /**
      * Inputs that are never flashed for validation exceptions.
      */
@@ -57,51 +59,51 @@ class Handler extends ExceptionHandler
 
             // 422 - Validation
             if ($e instanceof ValidationException) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Validation error',
-                    'errors'  => $e->errors(),
-                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+                return $this->error(
+                    'Validation error',
+                    Response::HTTP_UNPROCESSABLE_ENTITY,
+                    $e->errors()
+                );
             }
 
             // 401 - Unauthenticated
             if ($e instanceof AuthenticationException) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthenticated',
-                ], Response::HTTP_UNAUTHORIZED);
+                return $this->error(
+                    'Unauthenticated',
+                    Response::HTTP_UNAUTHORIZED
+                );
             }
 
             // 403 - Forbidden
             if ($e instanceof AuthorizationException) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Forbidden',
-                ], Response::HTTP_FORBIDDEN);
+                return $this->error(
+                    'Forbidden',
+                    Response::HTTP_FORBIDDEN
+                );
             }
 
             // 404 - Model not found (Eloquent)
             if ($e instanceof ModelNotFoundException) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Resource not found',
-                ], Response::HTTP_NOT_FOUND);
+                return $this->error(
+                    'Resource not found',
+                    Response::HTTP_NOT_FOUND
+                );
             }
 
             // 404 - Business not found exception
             if ($e instanceof AppNotFoundException) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $e->getMessage() ?: 'Resource not found',
-                ], Response::HTTP_NOT_FOUND);
+                return $this->error(
+                    $e->getMessage() ?: 'Resource not found',
+                    Response::HTTP_NOT_FOUND
+                );
             }
 
             // 404 - Route not found
             if ($e instanceof NotFoundHttpException) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Route not found',
-                ], Response::HTTP_NOT_FOUND);
+                return $this->error(
+                    'Route not found',
+                    Response::HTTP_NOT_FOUND
+                );
             }
 
             // 500 - Database error
@@ -113,44 +115,42 @@ class Handler extends ExceptionHandler
                     'message' => $e->getMessage(),
                 ]);
 
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Database error',
-                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+                return $this->error(
+                    'Database error',
+                    Response::HTTP_INTERNAL_SERVER_ERROR
+                );
             }
 
             // 400 - Business rule violation
             if ($e instanceof BusinessException) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $e->getMessage(),
-                ], Response::HTTP_BAD_REQUEST);
+                return $this->error(
+                    $e->getMessage(),
+                    Response::HTTP_BAD_REQUEST
+                );
             }
 
             // 422 - custom validation exception (from services)
             if ($e instanceof AppValidationException) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $e->getMessage(),
-                    'errors' => $e->getErrors(),
-                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+                return $this->error(
+                    $e->getMessage() ?: 'Validation error',
+                    Response::HTTP_UNPROCESSABLE_ENTITY,
+                    $e->getErrors()
+                );
             }
 
             // Other HTTP exceptions (405, 429...)
             if ($e instanceof HttpExceptionInterface) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $e->getMessage() ?: Response::$statusTexts[$e->getStatusCode()],
-                ], $e->getStatusCode());
+                return $this->error(
+                    $e->getMessage() ?: Response::$statusTexts[$e->getStatusCode()],
+                    $e->getStatusCode()
+                );
             }
 
             // Fallback - 500
-            return response()->json([
-                'success' => false,
-                'message' => config('app.debug')
-                    ? $e->getMessage()
-                    : 'Server error',
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->error(
+                config('app.debug') ? $e->getMessage() : 'Server error',
+                Response::HTTP_INTERNAL_SERVER_ERROR
+            );
         }
 
         return parent::render($request, $e);
